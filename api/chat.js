@@ -1,31 +1,29 @@
 export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).end();
 
-  const GROQ_KEY = process.env.GROQ_API_KEY;
-  if (!GROQ_KEY) return res.status(500).json({ error: 'Not configured' });
+  const KEY = process.env.GROQ_API_KEY;
+  if (!KEY) return res.status(500).json({ error: 'Server not configured' });
 
-  const { model = 'llama3-8b-8192', messages, max_tokens = 1024, temperature = 0.75 } = req.body;
-
+  const body = req.body;
   try {
-    const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROQ_KEY}`,
-      },
-      body: JSON.stringify({ model, messages, max_tokens, temperature, stream: true }),
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + KEY },
+      body: JSON.stringify(body),
     });
 
-    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Content-Type', r.headers.get('content-type') || 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Access-Control-Allow-Origin', '*');
 
-    const reader = groqRes.body.getReader();
-    const decoder = new TextDecoder();
+    const reader = r.body.getReader();
+    const dec = new TextDecoder();
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      res.write(decoder.decode(value, { stream: true }));
+      res.write(dec.decode(value, { stream: true }));
     }
     res.end();
   } catch (e) {
