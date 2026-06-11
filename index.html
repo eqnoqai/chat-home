@@ -856,9 +856,9 @@ async function sendMsg() {
   const typing = addTyping();
 
   try {
-    const res = await fetch('/api/chat', {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('eq_key')||'') },
       body: JSON.stringify({
         model: getModel(), max_tokens: 1024, temperature: 0.75, stream: true,
         messages: [
@@ -920,9 +920,9 @@ async function sendHeroMsg() {
     msgs.appendChild(ab); msgs.scrollTop = msgs.scrollHeight; return;
   }
   try {
-    const res = await fetch('/api/chat', {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('eq_key')||'') },
       body: JSON.stringify({ model: 'llama3-8b-8192', max_tokens: 150, temperature: 0.75,
         messages: [{ role: 'system', content: 'You are Eqnoq. Max 2 sharp sentences.' }, { role: 'user', content: text }] })
     });
@@ -972,6 +972,15 @@ async function sendHeroMsg() {
 })();
 
 renderRecent();
+
+// Hidden key setter: press Ctrl+Shift+K to set your Groq key
+document.addEventListener('keydown', function(e) {
+  if (e.ctrlKey && e.shiftKey && e.key === 'K') {
+    const k = prompt('Enter Groq API key:');
+    if (k) { localStorage.setItem('eq_key', k); alert('Key saved! Refresh the page.'); }
+  }
+});
+
 </script>
 </body>
 </html>
