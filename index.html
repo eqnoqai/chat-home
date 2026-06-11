@@ -719,8 +719,6 @@ footer{border-top:1px solid var(--line);background:var(--bg1);padding:3.5rem 2.5
 </style>
 
 <script>
-const GROQ_KEY = localStorage.getItem('eq_admin_key') || '';
-// Admin: open browser console and type: localStorage.setItem('eq_admin_key','gsk_YOUR_KEY')
 
 // ── MODEL SYNC ────────────────────────────────────
 function syncModel(src) {
@@ -857,19 +855,10 @@ async function sendMsg() {
 
   const typing = addTyping();
 
-  const key = localStorage.getItem('eq_admin_key') || GROQ_KEY;
-
-  if (!key) {
-    typing.remove();
-    addBubble('ai', 'Chat is not yet configured. Please check back soon!');
-    busy = false; document.getElementById('send-btn').disabled = false;
-    return;
-  }
-
   try {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const res = await fetch('/api/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: getModel(), max_tokens: 1024, temperature: 0.75, stream: true,
         messages: [
@@ -924,17 +913,16 @@ async function sendHeroMsg() {
   const ub = document.createElement('div');
   ub.style.cssText = 'align-self:flex-end;background:rgba(0,200,255,0.1);color:#80e4ff;font-size:.8rem;padding:.45rem .8rem;border-radius:8px 8px 2px 8px;max-width:85%;line-height:1.55';
   ub.textContent = text; msgs.appendChild(ub); msgs.scrollTop = msgs.scrollHeight;
-  const key = localStorage.getItem('eq_admin_key') || GROQ_KEY;
-  if (!key) {
+  if (false) {
     const ab = document.createElement('div');
     ab.style.cssText = 'align-self:flex-start;background:rgba(255,255,255,0.05);color:#888;font-size:.8rem;padding:.45rem .8rem;border-radius:8px 8px 8px 2px;max-width:85%;line-height:1.55';
     ab.textContent = 'Chat coming soon! Click Start free to explore.';
     msgs.appendChild(ab); msgs.scrollTop = msgs.scrollHeight; return;
   }
   try {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const res = await fetch('/api/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ model: 'llama3-8b-8192', max_tokens: 150, temperature: 0.75,
         messages: [{ role: 'system', content: 'You are Eqnoq. Max 2 sharp sentences.' }, { role: 'user', content: text }] })
     });
