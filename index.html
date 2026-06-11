@@ -721,6 +721,23 @@ footer{border-top:1px solid var(--line);background:var(--bg1);padding:3.5rem 2.5
 <script>
 const GROQ_API_KEY = window.__GROQ_KEY__ || '';
 
+function renderMd(s) {
+  if (!s) return '';
+  let h = s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  h = h.replace(/```(\w*)\n?([\s\S]*?)```/g, (_,l,c) => `<pre style="background:#0a0a0a;border:1px solid #1a1a1a;border-radius:8px;padding:.75rem;overflow-x:auto;margin:.4rem 0;font-family:'Courier New',monospace;font-size:.78rem;color:#ccc;line-height:1.6">${c.trim()}</pre>`);
+  h = h.replace(/`([^`]+)`/g, '<code style="font-family:monospace;font-size:.8rem;background:#111;border:1px solid #222;border-radius:4px;padding:1px 5px;color:#80e4ff">$1</code>');
+  h = h.replace(/\*\*(.+?)\*\*/g, '<strong style="color:#fff;font-weight:600">$1</strong>');
+  h = h.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  h = h.replace(/^### (.+)$/gm, '<div style="font-size:.92rem;font-weight:600;color:#fff;margin:.6rem 0 .3rem">$1</div>');
+  h = h.replace(/^## (.+)$/gm, '<div style="font-size:1rem;font-weight:700;color:#fff;margin:.7rem 0 .35rem">$1</div>');
+  h = h.replace(/^# (.+)$/gm, '<div style="font-size:1.1rem;font-weight:700;color:#fff;margin:.8rem 0 .4rem">$1</div>');
+  h = h.replace(/^[*-] (.+)$/gm, '<div style="padding-left:1rem;margin:.15rem 0">• $1</div>');
+  h = h.replace(/^\d+\. (.+)$/gm, '<div style="padding-left:1rem;margin:.15rem 0">$1</div>');
+  h = h.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color:#00c8ff;text-decoration:none">$1</a>');
+  h = h.replace(/^(?!<)(.*\S.*)$/gm, '<p style="margin:.3rem 0">$1</p>');
+  return h;
+}
+
 
 // ── MODEL SYNC ────────────────────────────────────
 function syncModel(src) {
@@ -786,7 +803,7 @@ function addBubble(role, text) {
   if (w) w.remove();
   const d = document.createElement('div');
   d.className = role === 'user' ? 'cmsg-user' : 'cmsg-ai';
-  d.textContent = text;
+  if (role === 'user') { d.textContent = text; } else { d.innerHTML = renderMd(text); }
   msgs.appendChild(d);
   msgs.scrollTop = msgs.scrollHeight;
   return d;
@@ -864,7 +881,7 @@ async function sendMsg() {
       body: JSON.stringify({
         model: getModel(), max_tokens: 1024, temperature: 0.75, stream: true,
         messages: [
-          { role: 'system', content: 'You are Eqnoq, a sharp, witty, direct AI. Never boring. Use markdown naturally.' },
+          { role: 'system', content: 'You are Eqnoq, an AI assistant at eqnoq.com. Be sharp, direct and casual — like a brilliant friend. Never say you are a large language model. Never use excessive headers or bold. Keep answers concise unless depth is needed. No corporate AI speak.' },
           ...history
         ]
       })
@@ -887,7 +904,7 @@ async function sendMsg() {
           const j = JSON.parse(d);
           const delta = j.choices?.[0]?.delta?.content;
           if (delta) {
-            full += delta; aiD.textContent = full;
+            full += delta; aiD.innerHTML = renderMd(full);
             document.getElementById('chat-msgs').scrollTop = 9999;
           }
         } catch(_) {}
