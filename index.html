@@ -648,7 +648,7 @@ footer{border-top:1px solid var(--line);background:var(--bg1);padding:3.5rem 2.5
         <div class="foot-col"><h4>Legal</h4><a href="#">Privacy</a><a href="#">Terms</a><a href="#">AI Usage Policy</a></div>
       </div>
       <div class="foot-bottom">
-        <span>© 2025 Eqnoq · All rights reserved</span>
+        <span>© 2025 Eqnoq · All rights reserved</span> <span onclick="setKey()" style="cursor:pointer;color:#111;user-select:none" title="settings">·</span>
         <span>eqnoq.com · solstiq.space</span>
       </div>
     </footer>
@@ -973,13 +973,7 @@ async function sendHeroMsg() {
 
 renderRecent();
 
-// Hidden key setter: press Ctrl+Shift+K to set your Groq key
-document.addEventListener('keydown', function(e) {
-  if (e.ctrlKey && e.shiftKey && e.key === 'K') {
-    const k = prompt('Enter Groq API key:');
-    if (k) { localStorage.setItem('eq_key', k); alert('Key saved! Refresh the page.'); }
-  }
-});
+
 
 </script>
 </body>
