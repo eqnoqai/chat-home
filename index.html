@@ -858,7 +858,7 @@ async function sendMsg() {
   try {
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('eq_key')||'') },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + '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' },
       body: JSON.stringify({
         model: getModel(), max_tokens: 1024, temperature: 0.75, stream: true,
         messages: [
@@ -922,7 +922,7 @@ async function sendHeroMsg() {
   try {
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('eq_key')||'') },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + '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' },
       body: JSON.stringify({ model: 'llama3-8b-8192', max_tokens: 150, temperature: 0.75,
         messages: [{ role: 'system', content: 'You are Eqnoq. Max 2 sharp sentences.' }, { role: 'user', content: text }] })
     });
