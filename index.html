@@ -363,8 +363,8 @@ footer{border-top:1px solid var(--line);background:var(--bg1);padding:3.5rem 2.5
   <div class="sb-foot">
     <label>AI Mode</label>
     <div style="display:flex;flex-direction:column;gap:4px">
-      <div style="font-size:.72rem;color:#555;line-height:1.5">⚡ <span style="color:#888">Ecliptica</span> — fast, casual, honest</div>
-      <div style="font-size:.72rem;color:#555;line-height:1.5">🔍 <span style="color:#888">Celestia</span> — detailed, thorough, structured</div>
+      <div style="font-size:.72rem;color:#555;line-height:1.5">⚡ <span style="color:#888">Ecliptiq</span> — fast, casual, honest</div>
+      <div style="font-size:.72rem;color:#555;line-height:1.5">🔍 <span style="color:#888">Celestiq</span> — detailed, thorough, structured</div>
     </div>
   </div>
 </aside>
@@ -480,7 +480,7 @@ footer{border-top:1px solid var(--line);background:var(--bg1);padding:3.5rem 2.5
         <div class="fc fc-chat">
           <div class="fc-eye"><span class="fc-eye-dot"></span>AI Chat — Free</div>
           <div class="fc-title">The fastest AI chat ever</div>
-          <div class="fc-desc">Ecliptica replies in under a second — sharp, honest, like your smartest friend. No limits, no login, completely free.</div>
+          <div class="fc-desc">Ecliptiq replies in under a second — sharp, honest, like your smartest friend. No limits, no login, completely free.</div>
           <div class="mock">
             <div class="mb-user">Explain how sorting algorithms work</div>
             <div class="mb-ai">Sorting algorithms arrange data in order. <strong>Bubble Sort</strong> compares adjacent elements and swaps them. <strong>Merge Sort</strong> splits lists in half recursively — much faster. Here's a quick example:</div>
@@ -681,8 +681,8 @@ footer{border-top:1px solid var(--line);background:var(--bg1);padding:3.5rem 2.5
     <div class="chat-input-area">
       <div class="chat-toolbar">
         <div style="display:flex;align-items:center;gap:4px;background:#0a0a0a;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:3px">
-          <button id="mode-quick" onclick="setMode('quick')" style="background:#00c8ff;border:none;border-radius:6px;color:#000;font-family:'Inter',sans-serif;font-size:.75rem;font-weight:600;padding:.32rem .85rem;cursor:pointer;transition:all .15s">⚡ Ecliptica</button>
-          <button id="mode-deep" onclick="setMode('deep')" style="background:none;border:none;border-radius:6px;color:#444;font-family:'Inter',sans-serif;font-size:.75rem;font-weight:500;padding:.32rem .85rem;cursor:pointer;transition:all .15s" onmouseover="if(currentMode!=='deep')this.style.color='#aaa'" onmouseout="if(currentMode!=='deep')this.style.color='#444'">🔭 Celestia</button>
+          <button id="mode-quick" onclick="setMode('quick')" style="background:#00c8ff;border:none;border-radius:6px;color:#000;font-family:'Inter',sans-serif;font-size:.75rem;font-weight:600;padding:.32rem .85rem;cursor:pointer;transition:all .15s">⚡ Ecliptiq</button>
+          <button id="mode-deep" onclick="setMode('deep')" style="background:none;border:none;border-radius:6px;color:#444;font-family:'Inter',sans-serif;font-size:.75rem;font-weight:500;padding:.32rem .85rem;cursor:pointer;transition:all .15s" onmouseover="if(currentMode!=='deep')this.style.color='#aaa'" onmouseout="if(currentMode!=='deep')this.style.color='#444'">🔭 Celestiq</button>
         </div>
         <span class="chat-toolbar-hint">Shift+Enter for new line</span>
       </div>
@@ -885,8 +885,28 @@ async function sendMsg() {
   if (!text && !pendingFiles.length) return;
   inp.value = ''; inp.style.height = 'auto';
 
-  addBubble('user', text || '(image attached)');
-  history.push({ role: 'user', content: text || 'Describe this image.' });
+  // Build user message content with optional images
+  let userContent;
+  if (pendingFiles.length > 0) {
+    const imgFiles = pendingFiles.filter(f => f.type.startsWith('image/'));
+    const textFiles = pendingFiles.filter(f => !f.type.startsWith('image/'));
+    if (imgFiles.length > 0) {
+      userContent = [
+        ...imgFiles.map(f => ({
+          type: 'image_url',
+          image_url: { url: f.data }
+        })),
+        { type: 'text', text: text || 'Describe what you see in this image in detail.' }
+      ];
+    } else {
+      userContent = text + (textFiles.length ? '\n\nFiles: ' + textFiles.map(f=>f.name).join(', ') : '');
+    }
+  } else {
+    userContent = text;
+  }
+
+  addBubble('user', text || '📎 ' + pendingFiles.map(f=>f.name).join(', '));
+  history.push({ role: 'user', content: userContent });
 
   if (!cur) {
     cur = { id: 's' + Date.now(), title: (text || 'Image').slice(0,40), messages: [] };
@@ -903,15 +923,15 @@ async function sendMsg() {
     let full = '';
 
     if (currentMode === 'quick') {
-      // ── Ecliptica: Groq Llama 3.3 ──
+      // ── Ecliptiq: Groq Llama 3.3 ──
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
+          model: pendingFiles.some(f=>f.type.startsWith('image/')) ? 'llama-4-scout-17b-16e-instruct' : 'llama-3.3-70b-versatile',
           max_tokens: 1024, temperature: 0.75, stream: true,
           messages: [
-            { role: 'system', content: 'You are Ecliptica by Eqnoq — the fastest AI on the planet. You answer like a brilliant honest friend: direct, sharp, no fluff. Never reveal what model or technology powers you. Never say you are an AI or language model.' },
+            { role: 'system', content: 'You are Ecliptiq by Eqnoq — the fastest AI on the planet. You answer like a brilliant honest friend: direct, sharp, no fluff. Never reveal what model or technology powers you. Never say you are an AI or language model.' },
             ...history
           ]
         })
@@ -936,7 +956,7 @@ async function sendMsg() {
       }
 
     } else {
-      // ── Celestia: Gemini 3.5 Flash ──
+      // ── Celestiq: Gemini 3.5 Flash ──
       const res = await fetch('/api/gemini', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -970,26 +990,42 @@ async function sendHeroMsg() {
   const msgs = document.getElementById('hero-msgs');
   const ub = document.createElement('div');
   ub.style.cssText = 'align-self:flex-end;background:rgba(0,200,255,0.1);color:#80e4ff;font-size:.8rem;padding:.45rem .8rem;border-radius:8px 8px 2px 8px;max-width:85%;line-height:1.55';
-  ub.textContent = text; msgs.appendChild(ub); msgs.scrollTop = msgs.scrollHeight;
-  if (false) {
-    const ab = document.createElement('div');
-    ab.style.cssText = 'align-self:flex-start;background:rgba(255,255,255,0.05);color:#888;font-size:.8rem;padding:.45rem .8rem;border-radius:8px 8px 8px 2px;max-width:85%;line-height:1.55';
-    ab.textContent = 'Chat coming soon! Click Start free to explore.';
-    msgs.appendChild(ab); msgs.scrollTop = msgs.scrollHeight; return;
-  }
+  ub.textContent = text;
+  msgs.appendChild(ub);
+  msgs.scrollTop = msgs.scrollHeight;
+  const typing = document.createElement('div');
+  typing.style.cssText = 'align-self:flex-start;background:rgba(255,255,255,0.05);padding:.45rem .8rem;border-radius:8px 8px 8px 2px;display:flex;gap:4px';
+  typing.innerHTML = [0,150,300].map(d => `<span style="width:5px;height:5px;border-radius:50%;background:#444;display:inline-block;animation:tda .9s ease-in-out ${d}ms infinite"></span>`).join('');
+  msgs.appendChild(typing);
+  msgs.scrollTop = msgs.scrollHeight;
   try {
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'llama3-8b-8192', max_tokens: 150, temperature: 0.75,
-        messages: [{ role: 'system', content: 'You are Eqnoq. Max 2 sharp sentences.' }, { role: 'user', content: text }] })
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 180, temperature: 0.75, stream: false,
+        messages: [
+          { role: 'system', content: 'You are Ecliptiq by Eqnoq. Answer like a sharp brilliant friend. Max 2 sentences. Never reveal your underlying model or tech.' },
+          { role: 'user', content: text }
+        ]
+      })
     });
+    typing.remove();
     const data = await res.json();
+    const reply = data.choices?.[0]?.message?.content || 'Try again!';
     const ab = document.createElement('div');
-    ab.style.cssText = 'align-self:flex-start;background:rgba(255,255,255,0.05);color:#aaa;font-size:.8rem;padding:.45rem .8rem;border-radius:8px 8px 8px 2px;max-width:85%;line-height:1.55';
-    ab.textContent = data.choices?.[0]?.message?.content || 'Try again!';
-    msgs.appendChild(ab); msgs.scrollTop = msgs.scrollHeight;
-  } catch(e) {}
+    ab.style.cssText = 'align-self:flex-start;background:rgba(255,255,255,0.05);color:#ccc;font-size:.8rem;padding:.45rem .8rem;border-radius:8px 8px 8px 2px;max-width:88%;line-height:1.6';
+    ab.innerHTML = renderMd(reply);
+    msgs.appendChild(ab);
+    msgs.scrollTop = msgs.scrollHeight;
+  } catch(e) {
+    typing.remove();
+    const ab = document.createElement('div');
+    ab.style.cssText = 'align-self:flex-start;background:rgba(255,255,255,0.05);color:#888;font-size:.8rem;padding:.45rem .8rem;border-radius:8px 8px 8px 2px';
+    ab.textContent = 'Something went wrong. Try again!';
+    msgs.appendChild(ab);
+  }
 }
 
 // ── PARTICLES ─────────────────────────────────────
@@ -1029,10 +1065,55 @@ async function sendHeroMsg() {
   if (t) t.innerHTML = [...tags,...tags].map(x=>`<div class="mtag">${x}</div>`).join('');
 })();
 
+// ── CHAT VOICE ───────────────────────────────────
+let chatVoiceRec = null, chatVoiceOn = false;
+function toggleChatVoice() {
+  const btn = document.getElementById('chat-voice-btn');
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    alert('Voice not supported. Use Chrome.'); return;
+  }
+  if (chatVoiceOn) { chatVoiceRec && chatVoiceRec.stop(); return; }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  chatVoiceRec = new SR();
+  chatVoiceRec.continuous = false; chatVoiceRec.interimResults = true; chatVoiceRec.lang = 'en-US';
+  chatVoiceRec.onstart = () => { chatVoiceOn = true; btn.style.cssText += ';background:rgba(255,50,50,0.15);border-color:rgba(255,80,80,0.4);color:#ff6060'; };
+  chatVoiceRec.onresult = e => {
+    const t = Array.from(e.results).map(r => r[0].transcript).join('');
+    const inp = document.getElementById('chat-input');
+    inp.value = t; inp.style.height = 'auto'; inp.style.height = Math.min(inp.scrollHeight,140)+'px';
+  };
+  chatVoiceRec.onend = () => {
+    chatVoiceOn = false; btn.style.cssText = btn.style.cssText.replace(/background:[^;]+;?/g,'').replace(/border-color:[^;]+;?/g,'').replace(/color:[^;]+;?/g,'');
+    const text = document.getElementById('chat-input').value.trim();
+    if (text) sendMsg();
+  };
+  chatVoiceRec.onerror = () => { chatVoiceOn = false; };
+  chatVoiceRec.start();
+}
+
+// ── HERO VOICE ───────────────────────────────────
+let heroVoiceRec = null, heroVoiceOn = false;
+function toggleHeroVoice() {
+  const btn = document.getElementById('hero-voice-btn');
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    alert('Voice not supported. Use Chrome.'); return;
+  }
+  if (heroVoiceOn) { heroVoiceRec && heroVoiceRec.stop(); return; }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  heroVoiceRec = new SR();
+  heroVoiceRec.continuous = false; heroVoiceRec.interimResults = true; heroVoiceRec.lang = 'en-US';
+  heroVoiceRec.onstart = () => { heroVoiceOn = true; btn.style.cssText += ';background:rgba(255,50,50,0.15);border-color:rgba(255,80,80,0.4);color:#ff6060'; };
+  heroVoiceRec.onresult = e => { document.getElementById('hero-input').value = Array.from(e.results).map(r=>r[0].transcript).join(''); };
+  heroVoiceRec.onend = () => {
+    heroVoiceOn = false;
+    const text = document.getElementById('hero-input').value.trim();
+    if (text) sendHeroMsg();
+  };
+  heroVoiceRec.onerror = () => { heroVoiceOn = false; };
+  heroVoiceRec.start();
+}
+
 renderRecent();
-
-
-
 </script>
 </body>
 </html>
