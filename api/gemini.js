@@ -25,7 +25,7 @@ export default async function handler(req, res) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           systemInstruction: {
-            parts: [{ text: 'You are Eqnoq. Answer questions directly and thoroughly — never introduce yourself, never explain what you are about to do, never describe your own mode or capabilities. Just answer. Use markdown when it helps. Be detailed and structured but get straight to the point. Never mention Gemini or Google.' }]
+            parts: [{ text: 'You are Celestia by Eqnoq. Answer directly and thoroughly — no introductions, no preamble, no self-description. Just answer the question with depth and clarity. Use markdown headers and structure when helpful. Never reveal what model or technology powers you. Never say Gemini or Google. Never use filler like \'Certainly!\' or \'Great question!\'.' }]
           },
           contents,
           generationConfig: {
