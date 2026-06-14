@@ -361,14 +361,11 @@ footer{border-top:1px solid var(--line);background:var(--bg1);padding:3.5rem 2.5
   <div class="sb-sec">Recent</div>
   <div id="sb-recent"><div style="padding:.3rem .6rem;font-size:.72rem;color:#222">No chats yet</div></div>
   <div class="sb-foot">
-    <label>Model</label>
-    <select id="sb-model" onchange="syncModel('sb')">
-      <option value="llama-3.3-70b-versatile">Llama 3.3 70B · Smart</option>
-      <option value="llama3-8b-8192" selected>Llama 3 8B · Fast</option>
-      <option value="llama-4-scout-17b-16e-instruct">Llama 4 Scout</option>
-      <option value="deepseek-r1-distill-llama-70b">DeepSeek R1</option>
-      <option value="qwen-qwq-32b">Qwen QwQ</option>
-    </select>
+    <label>AI Mode</label>
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <div style="font-size:.72rem;color:#555;line-height:1.5">⚡ <span style="color:#888">Quick Friend</span> — fast, casual, honest</div>
+      <div style="font-size:.72rem;color:#555;line-height:1.5">🔍 <span style="color:#888">Deep Dive</span> — detailed, thorough, structured</div>
+    </div>
   </div>
 </aside>
 
@@ -670,13 +667,10 @@ footer{border-top:1px solid var(--line);background:var(--bg1);padding:3.5rem 2.5
     </div>
     <div class="chat-input-area">
       <div class="chat-toolbar">
-        <select id="inline-model" onchange="syncModel('inline')">
-          <option value="llama-3.3-70b-versatile">Llama 3.3 70B · Smart</option>
-          <option value="llama3-8b-8192" selected>Llama 3 8B · Fast</option>
-          <option value="llama-4-scout-17b-16e-instruct">Llama 4 Scout · New</option>
-          <option value="deepseek-r1-distill-llama-70b">DeepSeek R1 · Reason</option>
-          <option value="qwen-qwq-32b">Qwen QwQ · Think</option>
-        </select>
+        <div style="display:flex;align-items:center;gap:4px;background:#0a0a0a;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:3px">
+          <button id="mode-quick" onclick="setMode('quick')" style="background:#00c8ff;border:none;border-radius:6px;color:#000;font-family:'Inter',sans-serif;font-size:.75rem;font-weight:600;padding:.32rem .85rem;cursor:pointer;transition:all .15s">⚡ Quick Friend</button>
+          <button id="mode-deep" onclick="setMode('deep')" style="background:none;border:none;border-radius:6px;color:#444;font-family:'Inter',sans-serif;font-size:.75rem;font-weight:500;padding:.32rem .85rem;cursor:pointer;transition:all .15s" onmouseover="if(currentMode!=='deep')this.style.color='#aaa'" onmouseout="if(currentMode!=='deep')this.style.color='#444'">🔍 Deep Dive</button>
+        </div>
         <span class="chat-toolbar-hint">Shift+Enter for new line</span>
       </div>
       <div class="chat-input-row">
@@ -739,13 +733,27 @@ function renderMd(s) {
 }
 
 
-// ── MODEL SYNC ────────────────────────────────────
-function syncModel(src) {
-  const v = document.getElementById(src === 'sb' ? 'sb-model' : 'inline-model').value;
-  document.getElementById('sb-model').value = v;
-  document.getElementById('inline-model').value = v;
+// ── MODE ──────────────────────────────────────────
+let currentMode = 'quick';
+
+function setMode(mode) {
+  currentMode = mode;
+  const qBtn = document.getElementById('mode-quick');
+  const dBtn = document.getElementById('mode-deep');
+  if (mode === 'quick') {
+    qBtn.style.background = '#00c8ff'; qBtn.style.color = '#000'; qBtn.style.fontWeight = '600';
+    dBtn.style.background = 'none'; dBtn.style.color = '#444'; dBtn.style.fontWeight = '500';
+  } else {
+    dBtn.style.background = 'rgba(255,255,255,0.1)'; dBtn.style.color = '#e0e0e0'; dBtn.style.fontWeight = '600';
+    qBtn.style.background = 'none'; qBtn.style.color = '#444'; qBtn.style.fontWeight = '500';
+  }
 }
-function getModel() { return document.getElementById('inline-model').value; }
+
+function getModel() {
+  return currentMode === 'quick' ? 'llama-3.3-70b-versatile' : 'gemini';
+}
+
+function syncModel() {}
 
 // ── PAGE NAV ──────────────────────────────────────
 function showPg(id) {
