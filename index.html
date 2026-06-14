@@ -883,40 +883,55 @@ async function sendMsg() {
   const typing = addTyping();
 
   try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: getModel(), max_tokens: 1024, temperature: 0.75, stream: true,
-        messages: [
-          { role: 'system', content: 'You are Eqnoq, an AI assistant at eqnoq.com. Be sharp, direct and casual — like a brilliant friend. Never say you are a large language model. Never use excessive headers or bold. Keep answers concise unless depth is needed. No corporate AI speak.' },
-          ...history
-        ]
-      })
-    });
-
-    typing.remove();
     const aiD = addBubble('ai', '');
-    const reader = res.body.getReader();
-    const dec = new TextDecoder();
-    let full = '', buf = '';
+    let full = '';
 
-    while (true) {
-      const { done, value } = await reader.read(); if (done) break;
-      buf += dec.decode(value, { stream: true });
-      const lines = buf.split('\n'); buf = lines.pop();
-      for (const line of lines) {
-        if (!line.startsWith('data:')) continue;
-        const d = line.slice(5).trim(); if (d === '[DONE]') continue;
-        try {
-          const j = JSON.parse(d);
-          const delta = j.choices?.[0]?.delta?.content;
-          if (delta) {
-            full += delta; aiD.innerHTML = renderMd(full);
-            document.getElementById('chat-msgs').scrollTop = 9999;
-          }
-        } catch(_) {}
+    if (currentMode === 'quick') {
+      // ── Quick Friend: Groq Llama 3.3 ──
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          max_tokens: 1024, temperature: 0.75, stream: true,
+          messages: [
+            { role: 'system', content: 'You are Eqnoq, a quick sharp friend. Be direct, casual, honest. Short punchy answers unless asked for more. No corporate speak. Never say you are a language model.' },
+            ...history
+          ]
+        })
+      });
+      typing.remove();
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let buf = '';
+      while (true) {
+        const { done, value } = await reader.read(); if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split('\n'); buf = lines.pop();
+        for (const line of lines) {
+          if (!line.startsWith('data:')) continue;
+          const d = line.slice(5).trim(); if (d === '[DONE]') continue;
+          try {
+            const j = JSON.parse(d);
+            const delta = j.choices?.[0]?.delta?.content;
+            if (delta) { full += delta; aiD.innerHTML = renderMd(full); document.getElementById('chat-msgs').scrollTop = 9999; }
+          } catch(_) {}
+        }
       }
+
+    } else {
+      // ── Deep Dive: Gemini 3.5 Flash ──
+      const res = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: history })
+      });
+      typing.remove();
+      const data = await res.json();
+      if (data.error) { full = '⚠ ' + data.error; }
+      else { full = data.text || 'No response'; }
+      aiD.innerHTML = renderMd(full);
+      document.getElementById('chat-msgs').scrollTop = 9999;
     }
 
     history.push({ role: 'assistant', content: full });
@@ -924,7 +939,7 @@ async function sendMsg() {
     saveSession();
   } catch(e) {
     typing.remove();
-    addBubble('ai', 'Something went wrong. Please try again!');
+    addBubble('ai', 'Something went wrong: ' + e.message);
   }
 
   busy = false;
