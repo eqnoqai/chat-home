@@ -1065,52 +1065,100 @@ async function sendHeroMsg() {
   if (t) t.innerHTML = [...tags,...tags].map(x=>`<div class="mtag">${x}</div>`).join('');
 })();
 
-// ── CHAT VOICE ───────────────────────────────────
-let chatVoiceRec = null, chatVoiceOn = false;
-function toggleChatVoice() {
-  const btn = document.getElementById('chat-voice-btn');
-  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-    alert('Voice not supported. Use Chrome.'); return;
+// ── WHISPER VOICE (works on all devices incl mobile) ─────
+let mediaRecorder = null, audioChunks = [], isRecording = false;
+
+async function startWhisperRecording(onDone) {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioChunks = [];
+    mediaRecorder = new MediaRecorder(stream, { mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4' });
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+    mediaRecorder.onstop = async () => {
+      stream.getTracks().forEach(t => t.stop());
+      const mimeType = mediaRecorder.mimeType;
+      const blob = new Blob(audioChunks, { type: mimeType });
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64 = reader.result.split(',')[1];
+        try {
+          const res = await fetch('/api/whisper', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ audio: base64, mimeType })
+          });
+          const data = await res.json();
+          onDone(data.text || '');
+        } catch(e) { onDone(''); }
+      };
+      reader.readAsDataURL(blob);
+    };
+    mediaRecorder.start();
+    return true;
+  } catch(e) {
+    alert('Microphone access denied. Please allow microphone in your browser settings.');
+    return false;
   }
-  if (chatVoiceOn) { chatVoiceRec && chatVoiceRec.stop(); return; }
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  chatVoiceRec = new SR();
-  chatVoiceRec.continuous = false; chatVoiceRec.interimResults = true; chatVoiceRec.lang = 'en-US';
-  chatVoiceRec.onstart = () => { chatVoiceOn = true; btn.style.cssText += ';background:rgba(255,50,50,0.15);border-color:rgba(255,80,80,0.4);color:#ff6060'; };
-  chatVoiceRec.onresult = e => {
-    const t = Array.from(e.results).map(r => r[0].transcript).join('');
-    const inp = document.getElementById('chat-input');
-    inp.value = t; inp.style.height = 'auto'; inp.style.height = Math.min(inp.scrollHeight,140)+'px';
-  };
-  chatVoiceRec.onend = () => {
-    chatVoiceOn = false; btn.style.cssText = btn.style.cssText.replace(/background:[^;]+;?/g,'').replace(/border-color:[^;]+;?/g,'').replace(/color:[^;]+;?/g,'');
-    const text = document.getElementById('chat-input').value.trim();
-    if (text) sendMsg();
-  };
-  chatVoiceRec.onerror = () => { chatVoiceOn = false; };
-  chatVoiceRec.start();
 }
 
-// ── HERO VOICE ───────────────────────────────────
-let heroVoiceRec = null, heroVoiceOn = false;
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+}
+
+// Chat page voice
+function toggleChatVoice() {
+  const btn = document.getElementById('chat-voice-btn');
+  if (isRecording) {
+    isRecording = false;
+    stopRecording();
+    btn.style.background = 'none';
+    btn.style.borderColor = 'rgba(255,255,255,0.07)';
+    btn.style.color = '#3a3a3a';
+    btn.title = 'Voice input';
+    return;
+  }
+  startWhisperRecording(text => {
+    if (!text) return;
+    const inp = document.getElementById('chat-input');
+    inp.value = text;
+    inp.style.height = 'auto';
+    inp.style.height = Math.min(inp.scrollHeight, 140) + 'px';
+    sendMsg();
+  }).then(started => {
+    if (started) {
+      isRecording = true;
+      btn.style.background = 'rgba(255,50,50,0.15)';
+      btn.style.borderColor = 'rgba(255,80,80,0.4)';
+      btn.style.color = '#ff5050';
+      btn.title = 'Tap to stop recording';
+    }
+  });
+}
+
+// Hero chat voice
+let heroRecording = false;
 function toggleHeroVoice() {
   const btn = document.getElementById('hero-voice-btn');
-  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-    alert('Voice not supported. Use Chrome.'); return;
+  if (heroRecording) {
+    heroRecording = false;
+    stopRecording();
+    btn.style.background = 'none';
+    btn.style.borderColor = 'rgba(255,255,255,0.08)';
+    btn.style.color = '#444';
+    return;
   }
-  if (heroVoiceOn) { heroVoiceRec && heroVoiceRec.stop(); return; }
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  heroVoiceRec = new SR();
-  heroVoiceRec.continuous = false; heroVoiceRec.interimResults = true; heroVoiceRec.lang = 'en-US';
-  heroVoiceRec.onstart = () => { heroVoiceOn = true; btn.style.cssText += ';background:rgba(255,50,50,0.15);border-color:rgba(255,80,80,0.4);color:#ff6060'; };
-  heroVoiceRec.onresult = e => { document.getElementById('hero-input').value = Array.from(e.results).map(r=>r[0].transcript).join(''); };
-  heroVoiceRec.onend = () => {
-    heroVoiceOn = false;
-    const text = document.getElementById('hero-input').value.trim();
-    if (text) sendHeroMsg();
-  };
-  heroVoiceRec.onerror = () => { heroVoiceOn = false; };
-  heroVoiceRec.start();
+  startWhisperRecording(text => {
+    if (!text) return;
+    document.getElementById('hero-input').value = text;
+    sendHeroMsg();
+  }).then(started => {
+    if (started) {
+      heroRecording = true;
+      btn.style.background = 'rgba(255,50,50,0.15)';
+      btn.style.borderColor = 'rgba(255,80,80,0.4)';
+      btn.style.color = '#ff5050';
+    }
+  });
 }
 
 renderRecent();
