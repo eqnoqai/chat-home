@@ -11,11 +11,20 @@ export default async function handler(req, res) {
   const { messages } = req.body;
 
   // Convert chat history to Gemini format
-  // messages come in as [{role:'user',content:'...'}, {role:'assistant',content:'...'}]
-  const contents = messages.map(m => ({
-    role: m.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: m.content }]
-  }));
+  // Strip any image/array content — Gemini only gets text
+  const contents = messages
+    .map(m => {
+      let text = '';
+      if (typeof m.content === 'string') {
+        text = m.content;
+      } else if (Array.isArray(m.content)) {
+        // Extract text parts only, skip image_url
+        const textPart = m.content.find(c => c.type === 'text');
+        text = textPart ? textPart.text : '[image]';
+      }
+      return { role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text }] };
+    })
+    .filter(m => m.parts[0].text.trim()); // remove empty messages
 
   try {
     const r = await fetch(
