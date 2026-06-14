@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
   const KEY = process.env.GROQ_API_KEY;
-  if (!KEY) return res.status(500).json({ error: 'Not configured' });
+  if (!KEY) return res.status(500).json({ error: 'Not configured — add GROQ_API_KEY to Vercel environment variables' });
 
   const { model = 'llama-3.3-70b-versatile', messages, max_tokens = 1024, temperature = 0.75, stream = true } = req.body;
 
@@ -21,12 +21,14 @@ export default async function handler(req, res) {
     });
 
     if (!groqRes.ok) {
-      const err = await groqRes.json();
-      return res.status(groqRes.status).json({ error: err.error?.message || 'Groq error' });
+      // Read as text first to avoid JSON parse errors
+      const errText = await groqRes.text();
+      let errMsg = 'Groq API error';
+      try { errMsg = JSON.parse(errText).error?.message || errMsg; } catch(_) { errMsg = errText.slice(0, 200); }
+      return res.status(groqRes.status).json({ error: errMsg });
     }
 
     if (!stream) {
-      // Non-streaming — return JSON directly
       const data = await groqRes.json();
       return res.status(200).json(data);
     }
