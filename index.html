@@ -679,9 +679,35 @@ let cur=null, history=[], busy=false;
 
 function saveSession() {
   if(!cur) return;
-  const idx=sessions.findIndex(s=>s.id===cur.id);
-  if(idx>=0) sessions[idx]=cur; else sessions.unshift(cur);
-  localStorage.setItem('eq_sessions',JSON.stringify(sessions.slice(0,50)));
+  // Strip base64 image data before saving — only keep text
+  const cleanMessages = cur.messages.map(m => {
+    if (Array.isArray(m.content)) {
+      const textPart = m.content.find(c => c.type === 'text');
+      return { role: m.role, content: textPart ? textPart.text : '[image]' };
+    }
+    return m;
+  });
+  const cleanSession = { ...cur, messages: cleanMessages };
+  const idx = sessions.findIndex(s => s.id === cur.id);
+  if(idx>=0) sessions[idx]=cleanSession; else sessions.unshift(cleanSession);
+  // Keep only last 20 sessions, truncate long messages
+  const trimmed = sessions.slice(0,20).map(s => ({
+    ...s,
+    messages: s.messages.slice(-30).map(m => ({
+      ...m,
+      content: typeof m.content === 'string' && m.content.length > 2000
+        ? m.content.slice(0,2000) + '…'
+        : m.content
+    }))
+  }));
+  try {
+    localStorage.setItem('eq_sessions', JSON.stringify(trimmed));
+  } catch(e) {
+    // If still too big, save just titles
+    try {
+      localStorage.setItem('eq_sessions', JSON.stringify(trimmed.map(s => ({...s, messages:[]}))));
+    } catch(_) {}
+  }
   renderRecent();
 }
 function loadSession(i) {
