@@ -15,52 +15,62 @@ export default async function handler(req, res) {
     ? lastMsg.content
     : (lastMsg.content?.find?.(c => c.type === 'text')?.text || '');
 
+  const today = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
   let searchContext = '';
 
-  // Detect if query needs real-time data
-  const needsSearch = SERPER_KEY && /today|tonight|now|current|latest|live|score|match|game|weather|news|price|stock|2024|2025|2026|who won|what happened|breaking/i.test(query);
-
-  if (needsSearch) {
+  // Always search if Serper key exists — real-time grounding for everything
+  if (SERPER_KEY && query.trim()) {
     try {
       const r = await fetch('https://google.serper.dev/search', {
         method: 'POST',
         headers: { 'X-API-KEY': SERPER_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ q: query, num: 6, gl: 'us', hl: 'en' })
+        body: JSON.stringify({ q: query, num: 6, gl: 'us', hl: 'en', tbs: 'qdr:d' }) // tbs=qdr:d = past 24 hours
       });
       const data = await r.json();
-      const organic = data.organic?.slice(0, 5) || [];
-      const answerBox = data.answerBox;
+
+      const organic    = data.organic?.slice(0, 5) || [];
+      const answerBox  = data.answerBox;
       const knowledgeGraph = data.knowledgeGraph;
-      const sportsResults = data.sports;
-      const newsResults = data.news?.slice?.(0,3) || [];
+      const news       = data.news?.slice?.(0, 4) || [];
+      const sports     = data.sports;
 
-      let ctx = '\n\n[REAL-TIME WEB SEARCH RESULTS — Today\'s date: ' + new Date().toDateString() + ']\n';
+      let ctx = `\n\n[TODAY IS ${today}. REAL-TIME WEB SEARCH RESULTS:]\n`;
 
-      if (answerBox?.answer) ctx += `\nDirect answer: ${answerBox.answer}\n`;
-      else if (answerBox?.snippet) ctx += `\nFeatured: ${answerBox.snippet}\n`;
-      if (answerBox?.title) ctx += `Source: ${answerBox.title}\n`;
+      if (answerBox?.answer)   ctx += `\nDirect answer: ${answerBox.answer}\n`;
+      if (answerBox?.snippet)  ctx += `Featured: ${answerBox.snippet}\n`;
+      if (answerBox?.title)    ctx += `Source: ${answerBox.title}\n`;
+      if (knowledgeGraph?.description) ctx += `\n${knowledgeGraph.description}\n`;
 
-      if (knowledgeGraph?.description) ctx += `\nKnowledge: ${knowledgeGraph.description}\n`;
+      if (sports) {
+        ctx += `\nSports results:\n${JSON.stringify(sports).slice(0, 800)}\n`;
+      }
 
-      if (sportsResults) ctx += `\nSports: ${JSON.stringify(sportsResults).slice(0, 500)}\n`;
-
-      if (newsResults.length) {
-        ctx += '\nLatest news:\n';
-        newsResults.forEach((n, i) => ctx += `${i+1}. ${n.title} — ${n.snippet} (${n.date||'recent'})\n`);
+      if (news.length) {
+        ctx += `\nLatest news:\n`;
+        news.forEach((n,i) => ctx += `${i+1}. ${n.title} — ${n.snippet} (${n.date||'recent'}) ${n.link}\n`);
       }
 
       if (organic.length) {
-        ctx += '\nWeb results:\n';
-        organic.forEach((r, i) => ctx += `${i+1}. ${r.title}\n   ${r.snippet}\n   ${r.link}\n`);
+        ctx += `\nWeb results:\n`;
+        organic.forEach((r,i) => ctx += `${i+1}. ${r.title}\n   ${r.snippet}\n   ${r.link}\n`);
       }
 
-      ctx += '\n[END SEARCH RESULTS. Answer based on these results. Be specific and cite what you found.]\n';
-      if (organic.length || answerBox || sportsResults) searchContext = ctx;
+      ctx += `\n[END SEARCH. Use these results to give a current, accurate answer. Today is ${today}. Cite sources when helpful.]\n`;
 
-    } catch(e) { console.error('Serper error:', e.message); }
+      if (organic.length || answerBox || sports || news.length) {
+        searchContext = ctx;
+      }
+    } catch(e) {
+      console.error('Serper error:', e.message);
+    }
   }
 
-  const sysPrompt = `You are Ecliptiq by Eqnoq — the fastest AI on the planet. You answer like a brilliant honest friend: sharp, direct, no fluff. Never reveal your model or that you are an AI.${searchContext ? ' You have real-time search results. Use them to give accurate, current answers. If you found sports scores or news, share them directly.' : ' If asked about very recent events you are unsure about, say so honestly.'}`;
+  // If no Serper key, tell user directly
+  const noKeyNote = !SERPER_KEY
+    ? `\n[Note: Real-time search is not configured. If asked about live events, scores, or breaking news, be honest that you may not have the latest info and suggest checking a live source.]\n`
+    : '';
+
+  const SYS = `You are Ecliptiq by Eqnoq — the fastest AI on the planet. You answer like a brilliant honest friend: direct, sharp, no fluff. Never reveal your model or that you are an AI. Today's date is ${today}. IMPORTANT: Always reply in the same language the user writes in.${searchContext ? ' You have real-time web search results — use them to give accurate, current answers. If you found scores or news, share them directly and confidently.' : noKeyNote}`;
 
   try {
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -69,10 +79,10 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
         max_tokens: 1024,
-        temperature: 0.7,
+        temperature: 0.65,
         stream: true,
         messages: [
-          { role: 'system', content: sysPrompt + searchContext },
+          { role: 'system', content: SYS + searchContext },
           ...messages
         ]
       })
