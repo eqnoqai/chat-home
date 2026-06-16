@@ -1195,7 +1195,7 @@ async function sendHeroMsg() {
   try{
     const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:150,temperature:0.75,stream:false,
-        messages:[{role:'system',content:'You are Ecliptiq by Eqnoq. Sharp, direct, honest. Max 2 sentences. Never reveal your model.'},{role:'user',content:text}]})});
+        messages:[{role:'system',content:'You are Ecliptiq by Eqnoq. Sharp, direct, honest. Max 2 sentences. Never reveal your model. Reply in the same language the user writes in.'},{role:'user',content:text}]})});
     typing.remove();
     const data=await res.json();
     const ab=document.createElement('div'); ab.className='hm-ai'; ab.innerHTML=renderMd(data.choices?.[0]?.message?.content||'Try again!');
@@ -1257,195 +1257,91 @@ function toggleHeroVoice(){
 
 // ── TEXT TO SPEECH (Ecliptiq only) ───────────────────
 let currentUtterance = null;
-// Detect language from text using Unicode ranges
-function detectLang(text) {
-  const t = text.slice(0, 200);
-  if (/[\u0900-\u097F]/.test(t)) return 'hi-IN';  // Hindi/Devanagari
-  if (/[\u0600-\u06FF]/.test(t)) return 'ar-SA';  // Arabic
-  if (/[\u4E00-\u9FFF]/.test(t)) return 'zh-CN';  // Chinese
-  if (/[\u3040-\u30FF]/.test(t)) return 'ja-JP';  // Japanese
-  if (/[\uAC00-\uD7AF]/.test(t)) return 'ko-KR';  // Korean
-  if (/[\u0400-\u04FF]/.test(t)) return 'ru-RU';  // Russian/Cyrillic
-  if (/[\u0370-\u03FF]/.test(t)) return 'el-GR';  // Greek
-  if (/[\u0E00-\u0E7F]/.test(t)) return 'th-TH';  // Thai
-  if (/[\u0B80-\u0BFF]/.test(t)) return 'ta-IN';  // Tamil
-  if (/[\u0C00-\u0C7F]/.test(t)) return 'te-IN';  // Telugu
-  if (/[\u0D00-\u0D7F]/.test(t)) return 'ml-IN';  // Malayalam
-  if (/[\u0A80-\u0AFF]/.test(t)) return 'gu-IN';  // Gujarati
-  if (/[\u0A00-\u0A7F]/.test(t)) return 'pa-IN';  // Punjabi
-  if (/[\u0C80-\u0CFF]/.test(t)) return 'kn-IN';  // Kannada
-  // Latin-based language detection by common words
-  if (/\b(le|la|les|un|une|des|je|tu|il|elle|nous|vous|ils|est|sont|avec|dans|pour)\b/i.test(t)) return 'fr-FR';
-  if (/\b(el|la|los|las|un|una|es|son|con|para|por|que|del|al|se|lo)\b/i.test(t)) return 'es-ES';
-  if (/\b(der|die|das|ein|eine|ist|sind|mit|für|und|oder|ich|du|er|sie|wir|sie)\b/i.test(t)) return 'de-DE';
-  if (/\b(il|la|le|un|una|è|sono|con|per|che|del|della|ho|hai|ha)\b/i.test(t)) return 'it-IT';
-  if (/\b(o|a|os|as|um|uma|é|são|com|para|que|do|da|dos|das|eu|tu)\b/i.test(t)) return 'pt-BR';
-  if (/\b(de|het|een|is|zijn|met|voor|en|of|ik|jij|hij|zij|wij)\b/i.test(t)) return 'nl-NL';
-  return 'en-US';
+// ── TTS ──────────────────────────────────────────
+let currentAudio = null;
+
+// Map voice gender setting to Groq PlayAI voices
+function getGroqVoice() {
+  // PlayAI English voices on Groq
+  const femaleVoices = ['aura-asteria-en', 'aura-luna-en', 'aura-stella-en', 'aura-athena-en'];
+  const maleVoices   = ['aura-orion-en',  'aura-arcas-en', 'aura-perseus-en', 'aura-angus-en'];
+  const list = voiceGender === 'female' ? femaleVoices : maleVoices;
+  return list[0];
 }
 
-function getBestVoice(lang, gender) {
-  const voices = window.speechSynthesis.getVoices();
-  if (!voices.length) return null;
-
-  const langBase = lang.split('-')[0]; // e.g. 'hi' from 'hi-IN'
-
-  // Try exact lang + gender match
-  let voice = voices.find(v =>
-    v.lang === lang &&
-    (gender === 'female'
-      ? /female|woman|girl|samantha|karen|zira|victoria|tessa|fiona/i.test(v.name)
-      : /male|man|alex|daniel|oliver|fred|jorge/i.test(v.name))
-  );
-
-  // Try exact lang any gender
-  if (!voice) voice = voices.find(v => v.lang === lang);
-
-  // Try base language match
-  if (!voice) voice = voices.find(v => v.lang.startsWith(langBase));
-
-  // Final fallback — any English voice
-  if (!voice) voice = voices.find(v => v.lang.startsWith('en'));
-
-  return voice || null;
-}
-
-function speakText(text, btn, force) {
-  if(!('speechSynthesis' in window)) return;
+async function speakText(text, btn, force) {
   if(isMuted && !force) return;
-  window.speechSynthesis.cancel();
-  if(currentUtterance && btn && !force) {
-    currentUtterance = null;
-    if(btn) btn.innerHTML = '🔊';
-    return;
-  }
-  const clean = text.replace(/[#*`_~\[\]]/g,'').replace(/\n/g,' ').replace(/https?:\/\/\S+/g,'').trim().slice(0,1200);
-  if(!clean) return;
 
-  const lang = detectLang(clean);
-  const utt = new SpeechSynthesisUtterance(clean);
-  utt.lang = lang;
+  // Stop any current audio
+  if(currentAudio) {
+    currentAudio.pause();
+    currentAudio = null;
+    if(btn) { btn.innerHTML = '🔊'; return; }
+  }
+
+  if(btn) btn.innerHTML = '⏳';
+
+  const clean = text
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/`[^`]+`/g, '')
+    .replace(/[#*_~\[\]]/g, '')
+    .replace(/https?:\/\/\S+/g, '')
+    .replace(/\n+/g, ' ')
+    .trim()
+    .slice(0, 800);
+
+  if(!clean) { if(btn) btn.innerHTML='🔊'; return; }
+
+  try {
+    const res = await fetch('/api/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: clean, voice: getGroqVoice() })
+    });
+    const data = await res.json();
+
+    if(data.fallback || !data.audio) {
+      // Fallback to browser TTS
+      browserSpeak(clean, btn);
+      return;
+    }
+
+    // Play the MP3 audio
+    const audioSrc = 'data:audio/mp3;base64,' + data.audio;
+    const audio = new Audio(audioSrc);
+    audio.playbackRate = voiceSpeed;
+    currentAudio = audio;
+
+    audio.onplay  = () => { if(btn) btn.innerHTML = '⏹'; };
+    audio.onended = () => { currentAudio = null; if(btn) btn.innerHTML = '🔊'; };
+    audio.onerror = () => { currentAudio = null; if(btn) btn.innerHTML = '🔊'; browserSpeak(clean, btn); };
+    audio.play().catch(() => browserSpeak(clean, btn));
+
+  } catch(e) {
+    if(btn) btn.innerHTML = '🔊';
+    browserSpeak(clean, btn);
+  }
+}
+
+// Browser TTS fallback — English only, used if Groq TTS fails
+function browserSpeak(text, btn) {
+  if(!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'en-US';
   utt.rate = voiceSpeed;
   utt.pitch = voiceGender === 'female' ? 1.1 : 0.85;
-  utt.volume = 1;
-
-  // Wait for voices to load if empty
   const voices = window.speechSynthesis.getVoices();
-  if (voices.length) {
-    const v = getBestVoice(lang, voiceGender);
-    if(v) utt.voice = v;
-  }
-
-  utt.onstart = () => { currentUtterance = utt; if(btn) btn.innerHTML = '⏹'; };
-  utt.onend   = () => { currentUtterance = null; if(btn) btn.innerHTML = isMuted ? '🔇' : '🔊'; };
-  utt.onerror = () => { currentUtterance = null; if(btn) btn.innerHTML = '🔊'; };
+  const v = voiceGender === 'female'
+    ? voices.find(v => /samantha|karen|zira|victoria/i.test(v.name) && v.lang.startsWith('en'))
+    : voices.find(v => /alex|daniel|fred/i.test(v.name) && v.lang.startsWith('en'));
+  if(v) utt.voice = v;
+  utt.onstart = () => { if(btn) btn.innerHTML = '⏹'; };
+  utt.onend   = () => { if(btn) btn.innerHTML = '🔊'; };
   window.speechSynthesis.speak(utt);
 }
-// Load voices async
-if('speechSynthesis' in window) {
-  window.speechSynthesis.onvoiceschanged = () => {
-    window.speechSynthesis.getVoices(); // cache voices
-  };
-  // Trigger voice load
-  window.speechSynthesis.getVoices();
-}
 
-// ── HAPTIC FEEDBACK ───────────────────────────────────
-function haptic(type) {
-  if(!navigator.vibrate) return;
-  if(type==='start') navigator.vibrate([30, 20, 30]); // double tap feel
-  else if(type==='stop') navigator.vibrate(50);
-  else if(type==='tap') navigator.vibrate(10);
-}
-
-// ── AUDIO CLICK SOUND ─────────────────────────────────
-let audioCtx = null;
-function playBeep(freq=880, dur=0.08, type='sine') {
-  try {
-    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain); gain.connect(audioCtx.destination);
-    osc.type = type; osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
-    osc.start(); osc.stop(audioCtx.currentTime + dur);
-  } catch(e) {}
-}
-
-// ── THEME ────────────────────────────────────────
-let currentTheme = localStorage.getItem('eq_theme') || 'dark';
-function setTheme(t) {
-  currentTheme = t;
-  localStorage.setItem('eq_theme', t);
-  document.body.className = t === 'dark' ? '' : t + '-mode';
-  document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('active-theme'));
-  const card = document.getElementById('theme-' + t);
-  if(card) card.classList.add('active-theme');
-}
-// Apply saved theme on load
-(function() { if(currentTheme !== 'dark') setTheme(currentTheme); })();
-
-// ── VOICE SETTINGS ────────────────────────────────
-let isMuted = localStorage.getItem('eq_muted') === 'true';
-let voiceGender = localStorage.getItem('eq_voice_gender') || 'female';
-let voiceSpeed = parseFloat(localStorage.getItem('eq_voice_speed') || '1.0');
-
-function toggleMute() {
-  isMuted = !isMuted;
-  localStorage.setItem('eq_muted', isMuted);
-  const toggle = document.getElementById('mute-toggle');
-  if(toggle) toggle.className = 'toggle-switch' + (isMuted ? ' on' : '');
-  // Stop current speech if muting
-  if(isMuted && 'speechSynthesis' in window) window.speechSynthesis.cancel();
-  haptic('tap');
-}
-
-function setVoiceGender(g) {
-  voiceGender = g;
-  localStorage.setItem('eq_voice_gender', g);
-  document.getElementById('voice-female').className = 'voice-pill' + (g==='female'?' active-pill':'');
-  document.getElementById('voice-male').className = 'voice-pill' + (g==='male'?' active-pill':'');
-  haptic('tap');
-  // Preview voice
-  speakText('Hey! I am Ecliptiq.', null, true);
-}
-
-function setVoiceSpeed(v) {
-  voiceSpeed = parseFloat(v);
-  localStorage.setItem('eq_voice_speed', voiceSpeed);
-  document.getElementById('speed-label').textContent = voiceSpeed.toFixed(1) + 'x';
-}
-
-// Apply saved settings
-(function() {
-  const mt = document.getElementById('mute-toggle');
-  if(mt && isMuted) mt.className = 'toggle-switch on';
-  const vf = document.getElementById('voice-female');
-  const vm = document.getElementById('voice-male');
-  if(vf) vf.className = 'voice-pill' + (voiceGender==='female'?' active-pill':'');
-  if(vm) vm.className = 'voice-pill' + (voiceGender==='male'?' active-pill':'');
-  const vs = document.getElementById('voice-speed');
-  if(vs) { vs.value = voiceSpeed; document.getElementById('speed-label').textContent = voiceSpeed.toFixed(1)+'x'; }
-})();
-
-// ── TTS MUTE BUTTON IN NAV ───────────────────────
-function toggleGlobalMute() {
-  toggleMute();
-  const btn = document.getElementById('global-mute-btn');
-  if(btn) btn.innerHTML = isMuted ? '🔇' : '🔊';
-}
-
-// ── DATA ─────────────────────────────────────────
-function clearHistory() {
-  if(!confirm('Delete all chat history?')) return;
-  sessions = []; cur = null; history = [];
-  localStorage.removeItem('eq_sessions');
-  renderRecent();
-  newChat();
-  haptic('tap');
-  showPage('chat');
-}
+if('speechSynthesis' in window) window.speechSynthesis.getVoices();
 
 
 // ── PARTICLE CANVAS ──────────────────────────────
