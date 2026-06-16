@@ -13,7 +13,7 @@ html,body{height:100%;overflow:hidden;background:#000;color:#ddd;font-family:'In
 :root{--eq:#00c8ff;--eq2:#80e4ff;--bg:#000;--bg1:#0a0a0a;--bg2:#111;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.15);--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px)}
 
 /* APP SHELL */
-#app{display:flex;flex-direction:column;height:100dvh;position:fixed;top:0;left:0;right:0;bottom:0;padding-bottom:calc(56px + var(--sab));overflow:hidden}
+#app{display:flex;flex-direction:column;height:100dvh;position:fixed;top:0;left:0;right:0;bottom:0;overflow:hidden}
 
 /* TOP NAV */
 #topnav{flex-shrink:0;height:calc(50px + var(--sat));padding-top:var(--sat);background:#0a0a0a;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;justify-content:space-between;padding-left:1rem;padding-right:1rem}
@@ -276,6 +276,7 @@ body.scifi-mode .mpill.on{background:#00ffe0;color:#000;border-color:#00ffe0}
   #sidebar{display:flex;width:220px;min-width:220px;flex-direction:column;background:#060606;border-right:1px solid #111;position:fixed;top:0;left:0;bottom:0;z-index:50;overflow:hidden}
   #app{left:220px}
   #topnav,#bar{left:220px}
+  .pg{left:0;right:0}
   #nav-menu-btn{display:none!important}
 }
 @media(max-width:767px){
@@ -332,12 +333,14 @@ body.scifi-mode .mpill.on{background:#00ffe0;color:#000;border-color:#00ffe0}
   <div style="font-size:9px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.1em;padding:.6rem .9rem .2rem">Recent</div>
   <div id="sb-recent" style="display:none;flex:1;overflow-y:auto;padding:0 .4rem;scrollbar-width:none"></div>
   <div style="padding:.6rem .7rem;border-top:1px solid #111">
-    <label style="font-size:9px;font-weight:700;color:#1a1a1a;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:.3rem">Model</label>
-    <div style="display:flex;gap:4px;margin-bottom:.5rem">
+    <label style="font-size:9px;font-weight:700;color:#444;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:.3rem">Model</label>
+    <div style="display:flex;gap:4px">
       <button id="sb-q" onclick="setMode('quick')" style="flex:1;background:var(--eq);border:none;border-radius:6px;color:#000;font-family:'Inter',sans-serif;font-size:.7rem;font-weight:600;padding:.35rem .3rem;cursor:pointer">Ecliptiq</button>
-      <button id="sb-d" onclick="setMode('deep')" style="flex:1;background:none;border:1px solid #222;border-radius:6px;color:#555;font-family:'Inter',sans-serif;font-size:.7rem;padding:.35rem .3rem;cursor:pointer">Celestiq</button>
+      <button id="sb-d" onclick="setMode('deep')" style="flex:1;background:none;border:1px solid #222;border-radius:6px;color:#666;font-family:'Inter',sans-serif;font-size:.7rem;padding:.35rem .3rem;cursor:pointer">Celestiq</button>
     </div>
-    <button onclick="openAuth('signin')" style="width:100%;background:#fff;border:none;border-radius:7px;color:#000;font-family:'Inter',sans-serif;font-size:.75rem;font-weight:600;padding:.45rem;cursor:pointer">Sign in</button>
+  </div>
+  <div style="padding:.6rem .7rem;border-top:1px solid #111;margin-top:auto">
+    <button onclick="openAuth('signin')" style="width:100%;background:#fff;border:none;border-radius:7px;color:#000;font-family:'Inter',sans-serif;font-size:.75rem;font-weight:600;padding:.5rem;cursor:pointer">Sign in</button>
   </div>
 </aside>
 
@@ -1191,25 +1194,43 @@ function heroVoice() {
 // ═══════════════════════════════════════════════
 function speakText(text, btn) {
   if (isMuted) return;
-  if (curAudio) { curAudio.pause(); curAudio = null; if (btn) btn.textContent = '🔊 Listen'; return; }
-  if (btn) btn.textContent = '⏳';
-  var clean = text.replace(/```[\s\S]*?```/g, 'code block.').replace(/[#*_`~\[\]]/g, '').replace(/https?:\/\/\S+/g, '').replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 500);
-  if (!clean) { if (btn) btn.textContent = '🔊 Listen'; return; }
-  // Pass gender — backend picks the right voice
-  fetch('/api/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: clean, gender: vGender }) })
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      if (d.audio) {
-        var audio = new Audio('data:audio/mp3;base64,' + d.audio);
-        audio.playbackRate = vSpeed; curAudio = audio;
-        audio.onplay = function() { if (btn) btn.textContent = '⏹ Stop'; };
-        audio.onended = audio.onerror = function() { curAudio = null; if (btn) btn.textContent = '🔊 Listen'; };
-        audio.play().catch(function() { curAudio = null; fallbackSpeak(clean, btn); });
-      } else { fallbackSpeak(clean, btn); }
-    }).catch(function() { fallbackSpeak(clean, btn); });
+  // Stop if already speaking
+  if (window.speechSynthesis.speaking) {
+    window.speechSynthesis.cancel();
+    if (btn) btn.innerHTML = MA_ICONS.listen + '<span>Listen</span>';
+    return;
+  }
+  var clean = text
+    .replace(/```[\s\S]*?```/g, 'code block.')
+    .replace(/[#*_`~\[\]]/g, '')
+    .replace(/https?:\/\/\S+/g, '')
+    .replace(/\n+/g, '. ')
+    .replace(/\s+/g, ' ')
+    .trim().slice(0, 600);
+  if (!clean) return;
+  if (btn) btn.innerHTML = MA_ICONS.stop + '<span>Stop</span>';
+  var utt = new SpeechSynthesisUtterance(clean);
+  utt.rate = vSpeed;
+  utt.pitch = vGender === 'f' ? 1.05 : 0.88;
+  utt.volume = 1;
+  // Pick best available voice
+  var voices = window.speechSynthesis.getVoices();
+  var pick;
+  if (vGender === 'f') {
+    pick = voices.find(function(v) { return /samantha|karen|victoria|fiona|moira|veena|tessa/i.test(v.name); })
+        || voices.find(function(v) { return v.lang === 'en-US' || v.lang === 'en-GB'; });
+  } else {
+    pick = voices.find(function(v) { return /alex|daniel|oliver|fred|thomas|rishi/i.test(v.name); })
+        || voices.find(function(v) { return (v.lang === 'en-US' || v.lang === 'en-GB') && !/Google/i.test(v.name); });
+  }
+  if (!pick) pick = voices.find(function(v) { return v.lang.startsWith('en'); });
+  if (pick) utt.voice = pick;
+  utt.onend = function() { if (btn) btn.innerHTML = MA_ICONS.listen + '<span>Listen</span>'; };
+  utt.onerror = function() { if (btn) btn.innerHTML = MA_ICONS.listen + '<span>Listen</span>'; };
+  window.speechSynthesis.speak(utt);
 }
 
-function fallbackSpeak(text, btn) {
+function fallbackSpeakfunction fallbackSpeak(text, btn) {
   if (!window.speechSynthesis) { if (btn) btn.textContent = '🔊 Listen'; return; }
   window.speechSynthesis.cancel();
   var utt = new SpeechSynthesisUtterance(text);
