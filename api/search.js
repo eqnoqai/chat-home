@@ -11,50 +11,56 @@ export default async function handler(req, res) {
 
   const { messages } = req.body;
   const lastMsg = messages[messages.length - 1];
-  const query   = typeof lastMsg.content === 'string'
+  const query = typeof lastMsg.content === 'string'
     ? lastMsg.content
-    : lastMsg.content?.find?.(c => c.type === 'text')?.text || '';
+    : (lastMsg.content?.find?.(c => c.type === 'text')?.text || '');
 
   let searchContext = '';
 
-  // 1. Serper search if key available
-  if (SERPER_KEY && query) {
+  // Detect if query needs real-time data
+  const needsSearch = SERPER_KEY && /today|tonight|now|current|latest|live|score|match|game|weather|news|price|stock|2024|2025|2026|who won|what happened|breaking/i.test(query);
+
+  if (needsSearch) {
     try {
       const r = await fetch('https://google.serper.dev/search', {
         method: 'POST',
         headers: { 'X-API-KEY': SERPER_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ q: query, num: 5, gl: 'us', hl: 'en' })
+        body: JSON.stringify({ q: query, num: 6, gl: 'us', hl: 'en' })
       });
       const data = await r.json();
-
       const organic = data.organic?.slice(0, 5) || [];
       const answerBox = data.answerBox;
       const knowledgeGraph = data.knowledgeGraph;
+      const sportsResults = data.sports;
+      const newsResults = data.news?.slice?.(0,3) || [];
 
-      let ctx = '\n\n[Real-time web search results:]\n';
+      let ctx = '\n\n[REAL-TIME WEB SEARCH RESULTS — Today\'s date: ' + new Date().toDateString() + ']\n';
 
-      // Answer box — most direct answer
-      if (answerBox?.answer) ctx += `Direct answer: ${answerBox.answer}\n\n`;
-      else if (answerBox?.snippet) ctx += `Featured snippet: ${answerBox.snippet}\n\n`;
+      if (answerBox?.answer) ctx += `\nDirect answer: ${answerBox.answer}\n`;
+      else if (answerBox?.snippet) ctx += `\nFeatured: ${answerBox.snippet}\n`;
+      if (answerBox?.title) ctx += `Source: ${answerBox.title}\n`;
 
-      // Knowledge graph
-      if (knowledgeGraph?.description) ctx += `Knowledge: ${knowledgeGraph.description}\n\n`;
+      if (knowledgeGraph?.description) ctx += `\nKnowledge: ${knowledgeGraph.description}\n`;
 
-      // Organic results
-      if (organic.length) {
-        ctx += organic.map((r, i) =>
-          `${i+1}. ${r.title}\n   ${r.snippet}\n   ${r.link}`
-        ).join('\n\n');
+      if (sportsResults) ctx += `\nSports: ${JSON.stringify(sportsResults).slice(0, 500)}\n`;
+
+      if (newsResults.length) {
+        ctx += '\nLatest news:\n';
+        newsResults.forEach((n, i) => ctx += `${i+1}. ${n.title} — ${n.snippet} (${n.date||'recent'})\n`);
       }
 
-      ctx += '\n[End of search results. Use these to give a current, accurate answer. Cite sources naturally when helpful.]\n';
-      if (organic.length || answerBox) searchContext = ctx;
+      if (organic.length) {
+        ctx += '\nWeb results:\n';
+        organic.forEach((r, i) => ctx += `${i+1}. ${r.title}\n   ${r.snippet}\n   ${r.link}\n`);
+      }
+
+      ctx += '\n[END SEARCH RESULTS. Answer based on these results. Be specific and cite what you found.]\n';
+      if (organic.length || answerBox || sportsResults) searchContext = ctx;
 
     } catch(e) { console.error('Serper error:', e.message); }
   }
 
-  // 2. Call Groq with search context
-  const sysPrompt = `You are Ecliptiq by Eqnoq — the fastest AI on the planet. You answer like a brilliant honest friend: direct, sharp, no fluff. Never reveal your model or that you are an AI.${searchContext ? ' You have real-time web search results. Use them to give current accurate answers. Cite sources when relevant.' : ''}`;
+  const sysPrompt = `You are Ecliptiq by Eqnoq — the fastest AI on the planet. You answer like a brilliant honest friend: sharp, direct, no fluff. Never reveal your model or that you are an AI.${searchContext ? ' You have real-time search results. Use them to give accurate, current answers. If you found sports scores or news, share them directly.' : ' If asked about very recent events you are unsure about, say so honestly.'}`;
 
   try {
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -74,7 +80,7 @@ export default async function handler(req, res) {
 
     if (!groqRes.ok) {
       const t = await groqRes.text();
-      let msg = 'Groq error';
+      let msg = 'API error';
       try { msg = JSON.parse(t).error?.message || msg; } catch(_) {}
       return res.status(groqRes.status).json({ error: msg });
     }
