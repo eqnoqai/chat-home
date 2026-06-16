@@ -68,8 +68,8 @@ html,body{height:100%;overflow:hidden;background:#000;color:#ddd;font-family:'In
 .mwrap{display:flex;flex-direction:column}
 .mwrap.u{align-items:flex-end}
 .mwrap.a{align-items:flex-start}
-.bub-u{background:rgba(0,200,255,.1);color:var(--eq2);font-size:1rem;padding:.6rem .9rem;border-radius:14px 14px 3px 14px;max-width:88%;line-height:1.65;word-break:break-word}
-.bub-a{background:#0f0f0f;color:#d0d0d0;font-size:1rem;padding:.6rem .9rem;border-radius:14px 14px 14px 3px;max-width:92%;line-height:1.8;word-break:break-word;border:1px solid #1a1a1a}
+.bub-u{background:rgba(0,200,255,.08);color:var(--eq2);font-size:.93rem;padding:.5rem .85rem;border-radius:10px;max-width:88%;line-height:1.65;word-break:break-word;border:1px solid rgba(0,200,255,.12)}
+.bub-a{background:none;color:#d0d0d0;font-size:.95rem;padding:.3rem 0;max-width:96%;line-height:1.85;word-break:break-word;border:none}
 .bub-a strong{color:#fff;font-weight:600}
 .bub-a em{color:#bbb}
 .bub-a code{font-family:monospace;font-size:.82rem;background:#0a0a0a;border:1px solid #222;border-radius:4px;padding:1px 5px;color:var(--eq2)}
@@ -110,9 +110,9 @@ html,body{height:100%;overflow:hidden;background:#000;color:#ddd;font-family:'In
 #send-btn:disabled{background:#1a1a1a;cursor:not-allowed}
 
 /* ── DISCOVER ── */
-#pg-discover{overflow-y:auto;padding:1.25rem 1rem 2rem}
+#pg-discover{overflow-y:auto;overflow-x:hidden;padding:1.25rem 1rem 2rem;-webkit-overflow-scrolling:touch}
 /* ── PRICING ── */
-#pg-pricing{overflow-y:auto;padding:1.25rem 1rem 2rem}
+#pg-pricing{overflow-y:auto;overflow-x:hidden;padding:1.25rem 1rem 2rem;-webkit-overflow-scrolling:touch}
 /* ── SETTINGS ── */
 #pg-settings{overflow-y:auto;padding:1.25rem 1rem 2rem}
 
@@ -239,7 +239,7 @@ body.light-mode .mpill.on{background:#0090bb;border-color:#0090bb}
 body.anime-mode{background:#1a0a2e;color:#ffe4f0;font-family:'Comic Sans MS','Chalkboard SE','Marker Felt',cursive}
 body.anime-mode .pg{background:#1a0a2e}
 body.anime-mode #topnav,body.anime-mode #bar,body.anime-mode #input-area{background:rgba(26,10,46,.97);border-color:rgba(255,150,200,.2)}
-body.anime-mode .bub-a{background:rgba(255,200,230,.08);color:#ffe4f0;border:1px solid rgba(255,150,200,.25);border-radius:20px 20px 20px 4px}
+body.anime-mode .bub-a{background:none;color:#ffe4f0;border:none}
 body.anime-mode .bub-u{background:linear-gradient(135deg,rgba(200,100,255,.25),rgba(255,100,180,.25));color:#ffe0f5;border-radius:20px 20px 4px 20px}
 body.anime-mode #send-btn,body.anime-mode .hc-send{background:linear-gradient(135deg,#ff64dc,#c864ff);color:#fff;border:none}
 body.anime-mode #msg-in{background:rgba(255,150,200,.08);border:1px solid rgba(255,150,200,.2);color:#ffe4f0;border-radius:20px}
@@ -264,7 +264,7 @@ body.anime-mode .pill.on{background:#ff64dc;border-color:#ff64dc}
 body.scifi-mode{background:#000c10;color:#9ffff0;font-family:'Courier New',monospace}
 body.scifi-mode .pg{background:#000c10}
 body.scifi-mode #topnav,body.scifi-mode #bar,body.scifi-mode #input-area{background:rgba(0,12,16,.97);border-color:rgba(0,255,210,.12)}
-body.scifi-mode .bub-a{background:rgba(0,255,210,.05);color:#9ffff0;border-color:rgba(0,255,210,.08)}
+body.scifi-mode .bub-a{background:none;color:#9ffff0;border:none}
 body.scifi-mode .bub-u{background:rgba(0,255,210,.1);color:#00ffe0}
 body.scifi-mode #send-btn,body.scifi-mode .hc-send{background:#00ffe0;color:#000}
 body.scifi-mode #msg-in{background:rgba(0,255,210,.05);border-color:rgba(0,255,210,.15);color:#9ffff0}
@@ -285,6 +285,16 @@ body.scifi-mode .mpill.on{background:#00ffe0;color:#000;border-color:#00ffe0}
 }
 }
 
+
+/* Flat action buttons */
+.macts{display:flex;gap:3px;margin-top:8px;flex-wrap:wrap;opacity:0;transition:opacity .2s;pointer-events:none}
+.macts.visible{opacity:1;pointer-events:all}
+.ma{background:none;border:none;border-radius:5px;color:#333;padding:4px 6px;cursor:pointer;display:flex;align-items:center;gap:3px;font-size:.72rem;font-family:'Inter',sans-serif;transition:color .15s}
+.ma:hover{color:#ccc;background:rgba(255,255,255,.06)}
+.ma svg{width:13px;height:13px;flex-shrink:0}
+.ma.liked{color:#34d058}
+.ma.disliked{color:#ff5050}
+
 /* Image fullscreen viewer */
 #img-viewer{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1000;align-items:center;justify-content:center;cursor:zoom-out;backdrop-filter:blur(8px)}
 #img-viewer.on{display:flex}
@@ -302,11 +312,11 @@ body.scifi-mode .mpill.on{background:#00ffe0;color:#000;border-color:#00ffe0}
     </button>
   </div>
   <div style="font-size:9px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.1em;padding:.6rem .9rem .2rem">Navigate</div>
-  <button style="display:flex;align-items:center;gap:8px;padding:.38rem .75rem;margin:1px .4rem;border-radius:7px;font-family:'Inter',sans-serif;font-size:.77rem;color:#aaa;cursor:pointer;border:none;background:none;width:calc(100% - .8rem);text-align:left" onclick="goTo('home')">🏠 Home</button>
-  <button style="display:flex;align-items:center;gap:8px;padding:.38rem .75rem;margin:1px .4rem;border-radius:7px;font-family:'Inter',sans-serif;font-size:.77rem;color:#aaa;cursor:pointer;border:none;background:none;width:calc(100% - .8rem);text-align:left" onclick="goTo('chat')">💬 Chat</button>
-  <button style="display:flex;align-items:center;gap:8px;padding:.38rem .75rem;margin:1px .4rem;border-radius:7px;font-family:'Inter',sans-serif;font-size:.77rem;color:#aaa;cursor:pointer;border:none;background:none;width:calc(100% - .8rem);text-align:left" onclick="goTo('discover')">🔭 Discover</button>
-  <button style="display:flex;align-items:center;gap:8px;padding:.38rem .75rem;margin:1px .4rem;border-radius:7px;font-family:'Inter',sans-serif;font-size:.77rem;color:#aaa;cursor:pointer;border:none;background:none;width:calc(100% - .8rem);text-align:left" onclick="goTo('pricing')">💳 Pricing</button>
-  <button style="display:flex;align-items:center;gap:8px;padding:.38rem .75rem;margin:1px .4rem;border-radius:7px;font-family:'Inter',sans-serif;font-size:.77rem;color:#aaa;cursor:pointer;border:none;background:none;width:calc(100% - .8rem);text-align:left" onclick="goTo('settings')">⚙️ Settings</button>
+  <button style="display:flex;align-items:center;gap:8px;padding:.38rem .75rem;margin:1px .4rem;border-radius:7px;font-family:'Inter',sans-serif;font-size:.77rem;color:#aaa;cursor:pointer;border:none;background:none;width:calc(100% - .8rem);text-align:left" onclick="goTo('home')">Home</button>
+  <button style="display:flex;align-items:center;gap:8px;padding:.38rem .75rem;margin:1px .4rem;border-radius:7px;font-family:'Inter',sans-serif;font-size:.77rem;color:#aaa;cursor:pointer;border:none;background:none;width:calc(100% - .8rem);text-align:left" onclick="goTo('chat')">Chat</button>
+  <button style="display:flex;align-items:center;gap:8px;padding:.38rem .75rem;margin:1px .4rem;border-radius:7px;font-family:'Inter',sans-serif;font-size:.77rem;color:#aaa;cursor:pointer;border:none;background:none;width:calc(100% - .8rem);text-align:left" onclick="goTo('discover')">Discover</button>
+  <button style="display:flex;align-items:center;gap:8px;padding:.38rem .75rem;margin:1px .4rem;border-radius:7px;font-family:'Inter',sans-serif;font-size:.77rem;color:#aaa;cursor:pointer;border:none;background:none;width:calc(100% - .8rem);text-align:left" onclick="goTo('pricing')">Pricing</button>
+  <button style="display:flex;align-items:center;gap:8px;padding:.38rem .75rem;margin:1px .4rem;border-radius:7px;font-family:'Inter',sans-serif;font-size:.77rem;color:#aaa;cursor:pointer;border:none;background:none;width:calc(100% - .8rem);text-align:left" onclick="goTo('settings')">Settings</button>
   <a style="display:flex;align-items:center;gap:8px;padding:.38rem .75rem;margin:1px .4rem;border-radius:7px;font-family:'Inter',sans-serif;font-size:.77rem;color:#3a3a3a;cursor:pointer;text-decoration:none;width:calc(100% - .8rem)" href="https://solstiq.space" target="_blank">
     <svg viewBox="0 0 470.59 159.15" height="10" fill="#f4a623" style="flex-shrink:0;opacity:.7"><g>
       <polygon class="cls-1" points="358.33 95.31 346.21 109.17 346.16 36.07 358.33 36.07 358.33 95.31"/>
@@ -324,8 +334,8 @@ body.scifi-mode .mpill.on{background:#00ffe0;color:#000;border-color:#00ffe0}
   <div style="padding:.6rem .7rem;border-top:1px solid #111">
     <label style="font-size:9px;font-weight:700;color:#1a1a1a;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:.3rem">Model</label>
     <div style="display:flex;gap:4px;margin-bottom:.5rem">
-      <button id="sb-q" onclick="setMode('quick')" style="flex:1;background:var(--eq);border:none;border-radius:6px;color:#000;font-family:'Inter',sans-serif;font-size:.7rem;font-weight:600;padding:.35rem .3rem;cursor:pointer">⚡ Ecliptiq</button>
-      <button id="sb-d" onclick="setMode('deep')" style="flex:1;background:none;border:1px solid #222;border-radius:6px;color:#555;font-family:'Inter',sans-serif;font-size:.7rem;padding:.35rem .3rem;cursor:pointer">🔭 Celestiq</button>
+      <button id="sb-q" onclick="setMode('quick')" style="flex:1;background:var(--eq);border:none;border-radius:6px;color:#000;font-family:'Inter',sans-serif;font-size:.7rem;font-weight:600;padding:.35rem .3rem;cursor:pointer">Ecliptiq</button>
+      <button id="sb-d" onclick="setMode('deep')" style="flex:1;background:none;border:1px solid #222;border-radius:6px;color:#555;font-family:'Inter',sans-serif;font-size:.7rem;padding:.35rem .3rem;cursor:pointer">Celestiq</button>
     </div>
     <button onclick="openAuth('signin')" style="width:100%;background:#fff;border:none;border-radius:7px;color:#000;font-family:'Inter',sans-serif;font-size:.75rem;font-weight:600;padding:.45rem;cursor:pointer">Sign in</button>
   </div>
@@ -358,7 +368,7 @@ body.scifi-mode .mpill.on{background:#00ffe0;color:#000;border-color:#00ffe0}
       <p class="home-tag">The fastest AI chat ever.<br><b>Honest. Free. Feels like a friend.</b></p>
       <div class="hero-box">
         <div id="hc-msgs">
-          <div class="bub-a" style="font-size:.82rem">Hey! I'm Ecliptiq — try me, I reply instantly 👋</div>
+          <div class="bub-a" style="font-size:.82rem">Hey! Ask me anything — I reply instantly.</div>
         </div>
         <div class="hc-row">
           <input id="hc-inp" type="text" placeholder="Ask anything…" onkeydown="if(event.key==='Enter')heroSend()">
@@ -378,7 +388,7 @@ body.scifi-mode .mpill.on{background:#00ffe0;color:#000;border-color:#00ffe0}
           <span>Camera</span>
         </div>
       </div>
-      <button class="home-cta" onclick="goTo('chat')">Try it free — it's instant →</button>
+      <button class="home-cta" onclick="goTo('chat')">Try it free</button>
     </div>
   </div>
 
@@ -390,8 +400,8 @@ body.scifi-mode .mpill.on{background:#00ffe0;color:#000;border-color:#00ffe0}
         Chat
       </div>
       <div style="display:flex;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:8px;padding:2px;gap:2px">
-        <button class="mpill on" id="mp-q" onclick="setMode('quick')">⚡ Ecliptiq</button>
-        <button class="mpill" id="mp-d" onclick="setMode('deep')">🔭 Celestiq</button>
+        <button class="mpill on" id="mp-q" onclick="setMode('quick')">Ecliptiq</button>
+        <button class="mpill" id="mp-d" onclick="setMode('deep')">Celestiq</button>
       </div>
     </div>
     <div id="chat-msgs">
@@ -424,15 +434,15 @@ body.scifi-mode .mpill.on{background:#00ffe0;color:#000;border-color:#00ffe0}
   <!-- DISCOVER -->
   <div class="pg" id="pg-discover">
     <div class="pg-h">Discover Eqnoq</div>
-    <div class="card"><span class="card-icon">⚡</span><h3>Ecliptiq — Your Quick Friend</h3><p>Fastest AI on the planet. Direct, honest, real-time web search. Free forever.</p></div>
-    <div class="card"><span class="card-icon">🔭</span><h3>Celestiq — Deep Intelligence</h3><p>Detailed, structured, thorough. Real-time data. Powered by Gemini.</p></div>
+    <div class="card"><h3>Ecliptiq — Your Quick Friend</h3><p>Fastest AI on the planet. Direct, honest, real-time web search. Free forever.</p></div>
+    <div class="card"><h3>Celestiq — Deep Intelligence</h3><p>Detailed, structured, thorough. Real-time data. Powered by Gemini.</p></div>
     <div class="g2">
-      <div class="gc"><h4>💬 Chat</h4><div class="tag">Always free</div><p>Unlimited messages</p></div>
-      <div class="gc"><h4>🎙 Voice</h4><div class="tag">Always free</div><p>Whisper AI</p></div>
-      <div class="gc"><h4>📸 Photo AI</h4><div class="tag">Always free</div><p>Food, homework</p></div>
-      <div class="gc"><h4>🖼 Image Gen</h4><div class="tag">Core+</div><p>Flux Schnell</p></div>
-      <div class="gc"><h4>🎬 Video</h4><div class="tag">Pro+</div><p>Coming soon</p></div>
-      <div class="gc"><h4>🔨 Builder</h4><div class="tag">Pro+</div><p>Coming soon</p></div>
+      <div class="gc"><h4>Chat</h4><div class="tag">Always free</div><p>Unlimited messages</p></div>
+      <div class="gc"><h4>Voice</h4><div class="tag">Always free</div><p>Whisper AI</p></div>
+      <div class="gc"><h4>Photo AI</h4><div class="tag">Always free</div><p>Food, homework</p></div>
+      <div class="gc"><h4>Image Gen</h4><div class="tag">Core+</div><p>Flux Schnell</p></div>
+      <div class="gc"><h4>Video</h4><div class="tag">Pro+</div><p>Coming soon</p></div>
+      <div class="gc"><h4>Builder</h4><div class="tag">Pro+</div><p>Coming soon</p></div>
     </div>
     <a href="https://solstiq.space" target="_blank" style="display:flex;align-items:center;gap:10px;background:#0a0a0a;border:1px solid rgba(244,166,35,.15);border-radius:13px;padding:1rem 1.1rem;text-decoration:none;margin-top:.5rem">
       <svg viewBox="0 0 470.59 159.15" height="20" fill="#f4a623" style="flex-shrink:0"><g>
@@ -464,15 +474,15 @@ body.scifi-mode .mpill.on{background:#00ffe0;color:#000;border-color:#00ffe0}
     <div class="pg-h">Settings</div>
     <div class="s-sec">Theme</div>
     <div class="theme-grid">
-      <button onclick="setTheme('')" id="tc-dark" class="tc tc-dark on"><span>🌑</span><span class="tc-n">Dark</span><span class="tc-s">Default</span></button>
-      <button onclick="setTheme('light-mode')" id="tc-light" class="tc tc-light"><span>☀️</span><span class="tc-n">Light</span><span class="tc-s">Clean</span></button>
-      <button onclick="setTheme('anime-mode')" id="tc-anime" class="tc tc-anime"><span>🌸</span><span class="tc-n">Anime</span><span class="tc-s">Pink</span></button>
-      <button onclick="setTheme('scifi-mode')" id="tc-scifi" class="tc tc-scifi"><span>🛸</span><span class="tc-n">Sci-Fi</span><span class="tc-s">Teal</span></button>
+      <button onclick="setTheme('')" id="tc-dark" class="tc tc-dark on"><span></span><span class="tc-n">Dark</span><span class="tc-s">Default</span></button>
+      <button onclick="setTheme('light-mode')" id="tc-light" class="tc tc-light"><span></span><span class="tc-n">Light</span><span class="tc-s">Clean</span></button>
+      <button onclick="setTheme('anime-mode')" id="tc-anime" class="tc tc-anime"><span></span><span class="tc-n">Anime</span><span class="tc-s">Pink</span></button>
+      <button onclick="setTheme('scifi-mode')" id="tc-scifi" class="tc tc-scifi"><span></span><span class="tc-n">Sci-Fi</span><span class="tc-s">Teal</span></button>
     </div>
     <div class="s-sec">Voice</div>
     <div class="s-card">
       <div class="s-row"><div><div class="s-lbl">Mute responses</div><div class="s-sub">Stop AI reading aloud</div></div><button class="tog" id="mute-tog" onclick="toggleMute()"></button></div>
-      <div class="s-row" style="border-bottom:none"><div class="s-lbl">Voice gender</div><div class="pills"><button class="pill on" id="pill-f" onclick="setGender('f')">👩 Female</button><button class="pill" id="pill-m" onclick="setGender('m')">👨 Male</button></div></div>
+      <div class="s-row" style="border-bottom:none"><div class="s-lbl">Voice gender</div><div class="pills"><button class="pill on" id="pill-f" onclick="setGender('f')">Female</button><button class="pill" id="pill-m" onclick="setGender('m')">Male</button></div></div>
       <div class="spd-row"><div class="spd-top"><span>Speed</span><span id="spd-val">1.0x</span></div><input type="range" id="spd-range" min="0.7" max="1.8" step="0.1" value="1.0" oninput="setSpd(this.value)"></div>
     </div>
     <div class="s-sec">Data</div>
@@ -517,8 +527,8 @@ body.scifi-mode .mpill.on{background:#00ffe0;color:#000;border-color:#00ffe0}
   </div>
   <div class="dr-sec">AI Model</div>
   <div class="dr-models">
-    <button class="dm on" id="dm-q" onclick="setMode('quick');closeDrawer()">⚡ Ecliptiq</button>
-    <button class="dm" id="dm-d" onclick="setMode('deep');closeDrawer()">🔭 Celestiq</button>
+    <button class="dm on" id="dm-q" onclick="setMode('quick');closeDrawer()">Ecliptiq</button>
+    <button class="dm" id="dm-d" onclick="setMode('deep');closeDrawer()">Celestiq</button>
   </div>
   <button onclick="toggleRecent()" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:.6rem 1.1rem;background:none;border:none;cursor:pointer;font-family:inherit">
     <span style="font-size:9px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.1em">Recent Chats</span>
@@ -548,7 +558,7 @@ body.scifi-mode .mpill.on{background:#00ffe0;color:#000;border-color:#00ffe0}
       <svg width="15" height="15" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
       Continue with Google
     </button>
-    <button class="soc-btn">🍎 Continue with Apple</button>
+    <button class="soc-btn">Continue with Apple</button>
   </div>
 </div>
 
@@ -560,7 +570,7 @@ body.scifi-mode .mpill.on{background:#00ffe0;color:#000;border-color:#00ffe0}
     <div class="auth-title" id="auth-title">Welcome back</div>
     <div style="font-size:.8rem;color:#555;text-align:center">Sign in to save chats and unlock more.</div>
     <button class="soc-btn"><svg width="15" height="15" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>Continue with Google</button>
-    <button class="soc-btn">🍎 Continue with Apple</button>
+    <button class="soc-btn">Continue with Apple</button>
     <div class="auth-or">or</div>
     <input class="auth-in" type="email" placeholder="Email" id="auth-email">
     <input class="auth-in" type="password" placeholder="Password" id="auth-pw">
@@ -804,28 +814,54 @@ function addBubble(role, text, msgIdx) {
   var acts = document.createElement('div');
   acts.className = 'macts';
   if (role === 'a') {
-    acts.appendChild(mkBtn('👍', function(btn) { btn.classList.toggle('liked'); }));
-    acts.appendChild(mkBtn('👎', function(btn) { btn.classList.toggle('disliked'); }));
-    acts.appendChild(mkBtn('↻ Retry', function() { regenMsg(wrap); }));
-    acts.appendChild(mkBtn('⎘ Copy', function(btn) { navigator.clipboard.writeText(b.innerText); btn.textContent = '✓'; setTimeout(function() { btn.textContent = '⎘ Copy'; }, 1500); }));
-    acts.appendChild(mkBtn('🔊 Listen', function(btn) { speakText(b.innerText, btn); }));
-    var rb = mkBtn('⚑ Report', function(btn) { if (confirm('Report this response?')) { btn.textContent = '✓ Reported'; } });
-    rb.style.color = '#ff5050';
-    acts.appendChild(rb);
+    acts.appendChild(mkBtn('like', function(btn) { btn.classList.toggle('liked'); }));
+    acts.appendChild(mkBtn('dislike', function(btn) { btn.classList.toggle('disliked'); }));
+    acts.appendChild(mkBtn('retry', function() { regenMsg(wrap); }));
+    acts.appendChild(mkBtn('copy', function(btn) { navigator.clipboard.writeText(b.innerText); btn.innerHTML = MA_ICONS.copy + '<span>Copied</span>'; setTimeout(function() { btn.innerHTML = MA_ICONS.copy + '<span>Copy</span>'; }, 1500); }));
+    acts.appendChild(mkBtn('listen', function(btn) { speakText(b.innerText, btn); }));
+    acts.appendChild(mkBtn('report', function(btn) { if (confirm('Report this response?')) { btn.innerHTML = MA_ICONS.report + '<span>Reported</span>'; } }));
   } else {
-    acts.appendChild(mkBtn('✏ Edit', function() { editBubble(wrap, b, text); }));
-    acts.appendChild(mkBtn('⎘ Copy', function(btn) { navigator.clipboard.writeText(b.innerText); btn.textContent = '✓'; setTimeout(function() { btn.textContent = '⎘ Copy'; }, 1500); }));
+    acts.appendChild(mkBtn('edit', function() { editBubble(wrap, b, text); }));
+    acts.appendChild(mkBtn('copy', function(btn) { navigator.clipboard.writeText(b.innerText); btn.innerHTML = MA_ICONS.copy + '<span>Copied</span>'; setTimeout(function() { btn.innerHTML = MA_ICONS.copy + '<span>Copy</span>'; }, 1500); }));
+  }
+  if (role === 'a') {
+    // Show actions only after response completes — callAPI will call showActs()
+    wrap.dataset.pending = '1';
+  } else {
+    acts.classList.add('visible');
   }
   wrap.appendChild(acts);
   msgs.appendChild(wrap);
   msgs.scrollTop = 9999;
   return b;
 }
+function showLastActs() {
+  // Make actions visible on the last AI bubble
+  var msgs = document.getElementById('chat-msgs');
+  var wraps = msgs.querySelectorAll('.mwrap.a[data-pending="1"]');
+  wraps.forEach(function(w) {
+    w.dataset.pending = '0';
+    var acts = w.querySelector('.macts');
+    if (acts) acts.classList.add('visible');
+  });
+}
 
+var MA_ICONS = {
+  'like':    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>',
+  'dislike': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>',
+  'retry':   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.1"/></svg>',
+  'copy':    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  'listen':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>',
+  'report':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>',
+  'edit':    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+  'stop':    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>'
+};
 function mkBtn(label, cb) {
   var btn = document.createElement('button');
   btn.className = 'ma';
-  btn.textContent = label;
+  var icon = MA_ICONS[label] || '';
+  var lbl = {like:'',dislike:'',retry:'Retry',copy:'Copy',listen:'Listen',report:'Report',edit:'Edit',stop:'Stop'}[label] || label;
+  btn.innerHTML = icon + (lbl ? '<span>' + lbl + '</span>' : '');
   btn.onclick = function() { cb(btn); };
   return btn;
 }
@@ -1027,11 +1063,13 @@ async function callAPI() {
       full = data2.error ? '⚠ ' + data2.error : (data2.text || 'No response');
       aiB.innerHTML = renderMd(full);
       document.getElementById('chat-msgs').scrollTop = 9999;
+      showLastActs();
     }
     if (full) {
       hist.push({ role: 'assistant', content: full });
       cur.messages = hist.slice();
       saveSession();
+      showLastActs();
     }
   } catch(err) {
     removeTyping();
@@ -1155,10 +1193,10 @@ function speakText(text, btn) {
   if (isMuted) return;
   if (curAudio) { curAudio.pause(); curAudio = null; if (btn) btn.textContent = '🔊 Listen'; return; }
   if (btn) btn.textContent = '⏳';
-  var clean = text.replace(/```[\s\S]*?```/g, '').replace(/[#*_`~\[\]]/g, '').replace(/https?:\/\/\S+/g, '').replace(/\n+/g, ' ').trim().slice(0, 500);
+  var clean = text.replace(/```[\s\S]*?```/g, 'code block.').replace(/[#*_`~\[\]]/g, '').replace(/https?:\/\/\S+/g, '').replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 500);
   if (!clean) { if (btn) btn.textContent = '🔊 Listen'; return; }
-  var voice = vGender === 'f' ? 'Celeste-PlayAI' : 'Atlas-PlayAI';
-  fetch('/api/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: clean, voice: voice }) })
+  // Pass gender — backend picks the right voice
+  fetch('/api/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: clean, gender: vGender }) })
     .then(function(r) { return r.json(); })
     .then(function(d) {
       if (d.audio) {
@@ -1216,7 +1254,13 @@ function applyGender() {
   if (pf) pf.className = 'pill' + (vGender === 'f' ? ' on' : '');
   if (pm) pm.className = 'pill' + (vGender === 'm' ? ' on' : '');
 }
-function setGender(g) { vGender = g; localStorage.setItem('eq_vg', g); applyGender(); }
+function setGender(g) {
+  vGender = g;
+  localStorage.setItem('eq_vg', g);
+  applyGender();
+  // Preview the new voice
+  speakText('Hey, this is how I sound!', null);
+}
 function setSpd(v) { vSpeed = parseFloat(v); localStorage.setItem('eq_vs', vSpeed); document.getElementById('spd-val').textContent = vSpeed.toFixed(1) + 'x'; }
 </script>
 
