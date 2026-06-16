@@ -224,6 +224,70 @@ html,body{height:100%;width:100%;overflow:hidden;background:#000;color:#e0e0e0;f
   .nav-center{display:none}
   #nav-menu-btn{display:flex!important}
 }
+
+/* ── THEMES ─────────────────────────────────────── */
+body.light-mode {
+  --black:#f4f4f4;--bg1:#fff;--bg2:#f0f0f0;--bg3:#e8e8e8;--bg4:#ddd;
+  --line:rgba(0,0,0,0.08);--line2:rgba(0,0,0,0.14);
+  --text:#1a1a1a;--muted:#888;--dim:#ccc;--white:#000;--warm:#222;
+  --eq:#0090bb;--eq2:#005f80;
+  background:#f4f4f4;color:#1a1a1a;
+}
+body.light-mode #topnav{background:rgba(244,244,244,0.95)}
+body.light-mode #bottombar{background:rgba(244,244,244,0.97)}
+body.light-mode .cmsg-ai{background:rgba(0,0,0,0.05);color:#222}
+body.light-mode .cmsg-user{background:rgba(0,144,187,0.12);color:#005f80}
+body.light-mode #chat-input{background:rgba(0,0,0,0.05);border-color:rgba(0,0,0,0.1);color:#1a1a1a}
+body.light-mode #home-msgs{background:#fff}
+body.light-mode .home-chat-box{background:rgba(255,255,255,0.95);border-color:rgba(0,144,187,0.2)}
+
+body.anime-mode {
+  --black:#0d0015;--bg1:#130020;--bg2:#1a002c;--bg3:#220038;--bg4:#2a0045;
+  --line:rgba(255,100,220,0.12);--line2:rgba(255,100,220,0.22);
+  --text:#f0d0ff;--muted:#9060a0;--dim:#3a1050;--white:#fff;
+  --eq:#ff64dc;--eq2:#ffaaee;--sol:#ffe047;
+  background:#0d0015;
+}
+body.anime-mode #topnav{background:rgba(13,0,21,0.92)}
+body.anime-mode #bottombar{background:rgba(13,0,21,0.97)}
+body.anime-mode .cmsg-ai{background:rgba(255,100,220,0.07);color:#f0d0ff;border:1px solid rgba(255,100,220,0.1)}
+body.anime-mode .cmsg-user{background:rgba(255,100,220,0.15);color:#ffaaee}
+body.anime-mode #chat-input{background:rgba(255,100,220,0.06);border-color:rgba(255,100,220,0.15);color:#f0d0ff}
+body.anime-mode #chat-send{background:#ff64dc;color:#0d0015}
+body.anime-mode .tab-btn.active{color:#ff64dc}
+body.anime-mode .mode-btn.active{background:#ff64dc;color:#0d0015}
+body.anime-mode .home-chat-box{border-color:rgba(255,100,220,0.2)}
+body.anime-mode canvas{filter:hue-rotate(200deg)}
+
+body.scifi-mode {
+  --black:#000a0f;--bg1:#001018;--bg2:#001820;--bg3:#002030;--bg4:#002840;
+  --line:rgba(0,255,200,0.1);--line2:rgba(0,255,200,0.2);
+  --text:#b0fff0;--muted:#408070;--dim:#002535;--white:#fff;
+  --eq:#00ffe0;--eq2:#80fff0;
+  background:#000a0f;
+}
+body.scifi-mode #topnav{background:rgba(0,10,15,0.93);border-bottom:1px solid rgba(0,255,200,0.15)}
+body.scifi-mode #bottombar{background:rgba(0,10,15,0.97);border-top:1px solid rgba(0,255,200,0.12)}
+body.scifi-mode .cmsg-ai{background:rgba(0,255,200,0.05);color:#b0fff0;border:1px solid rgba(0,255,200,0.08)}
+body.scifi-mode .cmsg-user{background:rgba(0,255,200,0.1);color:#00ffe0}
+body.scifi-mode #chat-input{background:rgba(0,255,200,0.04);border-color:rgba(0,255,200,0.15);color:#b0fff0}
+body.scifi-mode #chat-send{background:#00ffe0;color:#000}
+body.scifi-mode .tab-btn.active{color:#00ffe0}
+body.scifi-mode .mode-btn.active{background:#00ffe0;color:#000}
+body.scifi-mode .home-chat-box{border-color:rgba(0,255,200,0.2)}
+body.scifi-mode .nav-signin{background:#00ffe0;color:#000}
+body.scifi-mode canvas{filter:hue-rotate(155deg)}
+
+/* SETTINGS */
+.theme-card{background:var(--bg1);border:1px solid var(--line);border-radius:12px;padding:1rem;cursor:pointer;text-align:center;transition:all .15s;font-family:'Inter',sans-serif;width:100%}
+.theme-card:active{transform:scale(.97)}
+.theme-card.active-theme{border-color:var(--eq);background:rgba(0,200,255,0.06)}
+.voice-pill{background:var(--bg2);border:1px solid var(--line2);border-radius:20px;padding:.35rem .9rem;font-size:.8rem;font-weight:500;color:var(--muted);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.voice-pill.active-pill{background:var(--eq);color:#000;border-color:var(--eq);font-weight:600}
+.toggle-switch{width:44px;height:24px;background:var(--dim);border-radius:12px;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.toggle-switch.on{background:var(--eq)}
+.toggle-thumb{width:18px;height:18px;background:#fff;border-radius:50%;position:absolute;top:3px;left:3px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,0.3)}
+.toggle-switch.on .toggle-thumb{left:23px}
 </style>
 </head>
 <body>
@@ -283,9 +347,12 @@ html,body{height:100%;width:100%;overflow:hidden;background:#000;color:#e0e0e0;f
     <button class="nav-link" onclick="showPage('pricing')">Pricing</button>
     <button class="nav-signin" onclick="openAuth('signin')">Sign in</button>
   </div>
+  <div style="display:flex;align-items:center;gap:6px">
+  <button id="global-mute-btn" onclick="toggleGlobalMute()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:.25rem;line-height:1">🔊</button>
   <button id="nav-menu-btn" onclick="openMenu()">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
+  </div>
 </nav>
 
 <!-- APP -->
@@ -466,6 +533,127 @@ html,body{height:100%;width:100%;overflow:hidden;background:#000;color:#e0e0e0;f
     </div>
   </div>
 
+
+  <!-- SETTINGS PAGE -->
+  <div class="page" id="settingsPage">
+    <div style="overflow-y:auto;overscroll-behavior:contain;flex:1">
+    <div style="padding:1.5rem 1rem 2rem;max-width:600px;margin:0 auto">
+
+      <div style="font-family:'DM Sans',sans-serif;font-size:1.3rem;font-weight:700;color:var(--white);letter-spacing:-.03em;margin-bottom:1.5rem">Settings</div>
+
+      <!-- THEME -->
+      <div style="margin-bottom:1.75rem">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.75rem">Theme</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button onclick="setTheme('dark')" id="theme-dark" class="theme-card active-theme">
+            <div style="font-size:1.5rem;margin-bottom:.4rem">🌑</div>
+            <div style="font-size:.82rem;font-weight:600;color:var(--white)">Dark</div>
+            <div style="font-size:.72rem;color:var(--muted)">Default</div>
+          </button>
+          <button onclick="setTheme('light')" id="theme-light" class="theme-card">
+            <div style="font-size:1.5rem;margin-bottom:.4rem">☀️</div>
+            <div style="font-size:.82rem;font-weight:600;color:var(--white)">Light</div>
+            <div style="font-size:.72rem;color:var(--muted)">Clean & bright</div>
+          </button>
+          <button onclick="setTheme('anime')" id="theme-anime" class="theme-card">
+            <div style="font-size:1.5rem;margin-bottom:.4rem">🌸</div>
+            <div style="font-size:.82rem;font-weight:600;color:var(--white)">Anime</div>
+            <div style="font-size:.72rem;color:var(--muted)">Pink & dreamy</div>
+          </button>
+          <button onclick="setTheme('scifi')" id="theme-scifi" class="theme-card">
+            <div style="font-size:1.5rem;margin-bottom:.4rem">🛸</div>
+            <div style="font-size:.82rem;font-weight:600;color:var(--white)">Sci-Fi</div>
+            <div style="font-size:.72rem;color:var(--muted)">Teal & futuristic</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- VOICE -->
+      <div style="margin-bottom:1.75rem">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.75rem">Voice</div>
+
+        <div style="background:var(--bg1);border:1px solid var(--line);border-radius:12px;overflow:hidden">
+          <!-- Mute toggle -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:.9rem 1rem;border-bottom:1px solid var(--line)">
+            <div>
+              <div style="font-size:.85rem;font-weight:500;color:var(--text)">Mute responses</div>
+              <div style="font-size:.75rem;color:var(--muted)">Stop Ecliptiq from reading answers aloud</div>
+            </div>
+            <div class="toggle-switch" id="mute-toggle" onclick="toggleMute()">
+              <div class="toggle-thumb"></div>
+            </div>
+          </div>
+          <!-- Voice gender -->
+          <div style="padding:.9rem 1rem;border-bottom:1px solid var(--line)">
+            <div style="font-size:.85rem;font-weight:500;color:var(--text);margin-bottom:.65rem">Voice gender</div>
+            <div style="display:flex;gap:8px">
+              <button onclick="setVoiceGender('female')" id="voice-female" class="voice-pill active-pill">👩 Female</button>
+              <button onclick="setVoiceGender('male')" id="voice-male" class="voice-pill">👨 Male</button>
+            </div>
+          </div>
+          <!-- Voice speed -->
+          <div style="padding:.9rem 1rem">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
+              <div style="font-size:.85rem;font-weight:500;color:var(--text)">Voice speed</div>
+              <div style="font-size:.78rem;color:var(--eq)" id="speed-label">1.0x</div>
+            </div>
+            <input type="range" id="voice-speed" min="0.7" max="1.8" step="0.1" value="1.0"
+              oninput="setVoiceSpeed(this.value)"
+              style="width:100%;accent-color:var(--eq);cursor:pointer">
+          </div>
+        </div>
+      </div>
+
+      <!-- AI MODEL -->
+      <div style="margin-bottom:1.75rem">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.75rem">AI Mode</div>
+        <div style="background:var(--bg1);border:1px solid var(--line);border-radius:12px;overflow:hidden">
+          <div style="padding:.9rem 1rem;border-bottom:1px solid var(--line)">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div>
+                <div style="font-size:.85rem;font-weight:600;color:var(--white)">⚡ Ecliptiq</div>
+                <div style="font-size:.75rem;color:var(--muted)">Fast, sharp, real-time web search</div>
+              </div>
+              <button onclick="setMode('quick');showPage('chat')" style="background:var(--eq);border:none;border-radius:7px;color:#000;font-size:.75rem;font-weight:600;padding:.35rem .85rem;cursor:pointer">Select</button>
+            </div>
+          </div>
+          <div style="padding:.9rem 1rem">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div>
+                <div style="font-size:.85rem;font-weight:600;color:var(--white)">🔭 Celestiq</div>
+                <div style="font-size:.75rem;color:var(--muted)">Detailed, structured, thorough answers</div>
+              </div>
+              <button onclick="setMode('deep');showPage('chat')" style="background:var(--bg3);border:1px solid var(--line2);border-radius:7px;color:var(--muted);font-size:.75rem;font-weight:600;padding:.35rem .85rem;cursor:pointer">Select</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CLEAR DATA -->
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.75rem">Data</div>
+        <div style="background:var(--bg1);border:1px solid var(--line);border-radius:12px;overflow:hidden">
+          <button onclick="clearHistory()" style="width:100%;padding:.9rem 1rem;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)">
+            <div style="text-align:left">
+              <div style="font-size:.85rem;font-weight:500;color:var(--text)">Clear chat history</div>
+              <div style="font-size:.75rem;color:var(--muted)">Delete all saved conversations</div>
+            </div>
+            <span style="color:#ff5050;font-size:.8rem;font-weight:600">Clear</span>
+          </button>
+          <button onclick="if(confirm('Reset all settings?')){localStorage.clear();location.reload()}" style="width:100%;padding:.9rem 1rem;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between">
+            <div style="text-align:left">
+              <div style="font-size:.85rem;font-weight:500;color:var(--text)">Reset everything</div>
+              <div style="font-size:.75rem;color:var(--muted)">Clear all data and settings</div>
+            </div>
+            <span style="color:#ff5050;font-size:.8rem;font-weight:600">Reset</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+    </div>
+  </div>
+
 </div><!-- end #app -->
 
 <!-- BOTTOM TAB BAR -->
@@ -485,6 +673,10 @@ html,body{height:100%;width:100%;overflow:hidden;background:#000;color:#e0e0e0;f
   <button class="tab-btn" id="tab-pricing" onclick="showPage('pricing')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
     Pricing
+  </button>
+  <button class="tab-btn" id="tab-settings" onclick="showPage('settings')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    Settings
   </button>
   <button class="tab-btn" id="tab-menu" onclick="openMenu()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
@@ -524,6 +716,9 @@ html,body{height:100%;width:100%;overflow:hidden;background:#000;color:#e0e0e0;f
   </button>
   <button class="drawer-item" onclick="showPage('pricing');closeMenu()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg> Pricing
+  </button>
+  <button class="drawer-item" onclick="showPage('settings');closeMenu()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Settings
   </button>
   <a class="drawer-item" href="https://solstiq.space" target="_blank">
     <svg viewBox="0 0 470.59 159.15" height="14" fill="#f4a623"><g>
@@ -777,30 +972,42 @@ function addBubble(role, text, msgIndex) {
   if(role==='ai') {
     // Like
     const likeBtn = document.createElement('button');
-    likeBtn.className = 'ma-btn'; likeBtn.innerHTML = '👍';
-    likeBtn.title = 'Good response';
-    likeBtn.onclick = () => { likeBtn.classList.toggle('liked'); dislikeBtn.classList.remove('disliked'); };
+    likeBtn.className = 'ma-btn'; likeBtn.title = 'Good response';
+    likeBtn.innerHTML = '👍';
+    likeBtn.onclick = () => { likeBtn.classList.toggle('liked'); dislikeBtn.classList.remove('disliked'); haptic('tap'); };
     // Dislike
     const dislikeBtn = document.createElement('button');
-    dislikeBtn.className = 'ma-btn'; dislikeBtn.innerHTML = '👎';
-    dislikeBtn.title = 'Bad response';
-    dislikeBtn.onclick = () => { dislikeBtn.classList.toggle('disliked'); likeBtn.classList.remove('liked'); };
+    dislikeBtn.className = 'ma-btn'; dislikeBtn.title = 'Bad response';
+    dislikeBtn.innerHTML = '👎';
+    dislikeBtn.onclick = () => { dislikeBtn.classList.toggle('disliked'); likeBtn.classList.remove('liked'); haptic('tap'); };
     // Regen
     const regenBtn = document.createElement('button');
-    regenBtn.className = 'ma-btn'; regenBtn.innerHTML = '↻ Retry';
-    regenBtn.title = 'Regenerate';
-    regenBtn.onclick = () => regenMsg(wrap);
+    regenBtn.className = 'ma-btn'; regenBtn.title = 'Regenerate';
+    regenBtn.innerHTML = '↻';
+    regenBtn.onclick = () => { haptic('tap'); regenMsg(wrap); };
     // Copy
     const copyBtn = document.createElement('button');
-    copyBtn.className = 'ma-btn'; copyBtn.innerHTML = '⎘ Copy';
-    copyBtn.onclick = () => { navigator.clipboard.writeText(d.innerText); copyBtn.innerHTML='✓ Copied'; setTimeout(()=>copyBtn.innerHTML='⎘ Copy',1500); };
-    // TTS
+    copyBtn.className = 'ma-btn'; copyBtn.title = 'Copy';
+    copyBtn.innerHTML = '⎘';
+    copyBtn.onclick = () => { navigator.clipboard.writeText(d.innerText); copyBtn.innerHTML='✓'; setTimeout(()=>copyBtn.innerHTML='⎘',1500); haptic('tap'); };
+    // Mute/speak toggle
     const ttsBtn = document.createElement('button');
-    ttsBtn.className = 'ma-btn'; ttsBtn.innerHTML = '🔊';
-    ttsBtn.title = 'Read aloud';
-    ttsBtn.onclick = () => speakText(d.innerText, ttsBtn);
-
-    actions.append(likeBtn, dislikeBtn, regenBtn, copyBtn, ttsBtn);
+    ttsBtn.className = 'ma-btn'; ttsBtn.title = 'Read aloud';
+    ttsBtn.innerHTML = isMuted ? '🔇' : '🔊';
+    ttsBtn.onclick = () => { speakText(d.innerText, ttsBtn); haptic('tap'); };
+    // Report
+    const reportBtn = document.createElement('button');
+    reportBtn.className = 'ma-btn'; reportBtn.title = 'Report';
+    reportBtn.innerHTML = '⚑';
+    reportBtn.style.color = '#ff5050';
+    reportBtn.onclick = () => {
+      haptic('tap');
+      if(confirm('Report this response as harmful or incorrect?')) {
+        reportBtn.innerHTML = '✓'; reportBtn.style.color = '#34d058';
+        setTimeout(()=>{ reportBtn.innerHTML='⚑'; reportBtn.style.color='#ff5050'; },2000);
+      }
+    };
+    actions.append(likeBtn, dislikeBtn, regenBtn, copyBtn, ttsBtn, reportBtn);
   } else {
     // Edit button for user messages
     const editBtn = document.createElement('button');
@@ -1050,21 +1257,30 @@ function toggleHeroVoice(){
 
 // ── TEXT TO SPEECH (Ecliptiq only) ───────────────────
 let currentUtterance = null;
-function speakText(text, btn) {
+function speakText(text, btn, force) {
   if(!('speechSynthesis' in window)) return;
-  // Cancel any current speech
+  if(isMuted && !force) return;
   window.speechSynthesis.cancel();
-  if(currentUtterance && btn) { currentUtterance = null; if(btn) btn.innerHTML='🔊'; return; }
-  // Strip markdown for cleaner speech
-  const clean = text.replace(/[#*`_~]/g,'').replace(/\n/g,' ').slice(0,1000);
+  if(currentUtterance && btn && !force) { currentUtterance = null; if(btn) { btn.innerHTML='🔊'; } return; }
+  const clean = text.replace(/[#*`_~\[\]]/g,'').replace(/\n/g,' ').replace(/https?:\/\/\S+/g,'').trim().slice(0,1000);
+  if(!clean) return;
   const utt = new SpeechSynthesisUtterance(clean);
-  utt.rate = 1.05; utt.pitch = 1; utt.volume = 1;
-  // Try to get a good voice
+  utt.rate = voiceSpeed;
+  utt.pitch = voiceGender === 'female' ? 1.1 : 0.85;
+  utt.volume = 1;
   const voices = window.speechSynthesis.getVoices();
-  const preferred = voices.find(v => v.name.includes('Samantha') || v.name.includes('Google US') || v.name.includes('Alex') || (v.lang==='en-US' && !v.name.includes('Google')));
+  // Pick voice by gender preference
+  let preferred;
+  if(voiceGender === 'female') {
+    preferred = voices.find(v => v.name.includes('Samantha') || v.name.includes('Zira') || v.name.includes('Karen') || (v.lang==='en-US' && v.name.toLowerCase().includes('female')));
+    if(!preferred) preferred = voices.find(v => v.lang==='en-US' || v.lang==='en-GB');
+  } else {
+    preferred = voices.find(v => v.name.includes('Alex') || v.name.includes('Daniel') || v.name.includes('Google UK English Male') || (v.lang==='en-US' && v.name.toLowerCase().includes('male')));
+    if(!preferred) preferred = voices.find(v => v.lang==='en-US');
+  }
   if(preferred) utt.voice = preferred;
   utt.onstart = () => { currentUtterance = utt; if(btn) btn.innerHTML='⏹'; };
-  utt.onend = () => { currentUtterance = null; if(btn) btn.innerHTML='🔊'; };
+  utt.onend = () => { currentUtterance = null; if(btn) btn.innerHTML=isMuted?'🔇':'🔊'; };
   window.speechSynthesis.speak(utt);
 }
 // Load voices async
@@ -1092,6 +1308,81 @@ function playBeep(freq=880, dur=0.08, type='sine') {
     osc.start(); osc.stop(audioCtx.currentTime + dur);
   } catch(e) {}
 }
+
+// ── THEME ────────────────────────────────────────
+let currentTheme = localStorage.getItem('eq_theme') || 'dark';
+function setTheme(t) {
+  currentTheme = t;
+  localStorage.setItem('eq_theme', t);
+  document.body.className = t === 'dark' ? '' : t + '-mode';
+  document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('active-theme'));
+  const card = document.getElementById('theme-' + t);
+  if(card) card.classList.add('active-theme');
+}
+// Apply saved theme on load
+(function() { if(currentTheme !== 'dark') setTheme(currentTheme); })();
+
+// ── VOICE SETTINGS ────────────────────────────────
+let isMuted = localStorage.getItem('eq_muted') === 'true';
+let voiceGender = localStorage.getItem('eq_voice_gender') || 'female';
+let voiceSpeed = parseFloat(localStorage.getItem('eq_voice_speed') || '1.0');
+
+function toggleMute() {
+  isMuted = !isMuted;
+  localStorage.setItem('eq_muted', isMuted);
+  const toggle = document.getElementById('mute-toggle');
+  if(toggle) toggle.className = 'toggle-switch' + (isMuted ? ' on' : '');
+  // Stop current speech if muting
+  if(isMuted && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+  haptic('tap');
+}
+
+function setVoiceGender(g) {
+  voiceGender = g;
+  localStorage.setItem('eq_voice_gender', g);
+  document.getElementById('voice-female').className = 'voice-pill' + (g==='female'?' active-pill':'');
+  document.getElementById('voice-male').className = 'voice-pill' + (g==='male'?' active-pill':'');
+  haptic('tap');
+  // Preview voice
+  speakText('Hey! I am Ecliptiq.', null, true);
+}
+
+function setVoiceSpeed(v) {
+  voiceSpeed = parseFloat(v);
+  localStorage.setItem('eq_voice_speed', voiceSpeed);
+  document.getElementById('speed-label').textContent = voiceSpeed.toFixed(1) + 'x';
+}
+
+// Apply saved settings
+(function() {
+  const mt = document.getElementById('mute-toggle');
+  if(mt && isMuted) mt.className = 'toggle-switch on';
+  const vf = document.getElementById('voice-female');
+  const vm = document.getElementById('voice-male');
+  if(vf) vf.className = 'voice-pill' + (voiceGender==='female'?' active-pill':'');
+  if(vm) vm.className = 'voice-pill' + (voiceGender==='male'?' active-pill':'');
+  const vs = document.getElementById('voice-speed');
+  if(vs) { vs.value = voiceSpeed; document.getElementById('speed-label').textContent = voiceSpeed.toFixed(1)+'x'; }
+})();
+
+// ── TTS MUTE BUTTON IN NAV ───────────────────────
+function toggleGlobalMute() {
+  toggleMute();
+  const btn = document.getElementById('global-mute-btn');
+  if(btn) btn.innerHTML = isMuted ? '🔇' : '🔊';
+}
+
+// ── DATA ─────────────────────────────────────────
+function clearHistory() {
+  if(!confirm('Delete all chat history?')) return;
+  sessions = []; cur = null; history = [];
+  localStorage.removeItem('eq_sessions');
+  renderRecent();
+  newChat();
+  haptic('tap');
+  showPage('chat');
+}
+
 
 // ── PARTICLE CANVAS ──────────────────────────────
 (function(){
