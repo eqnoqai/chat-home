@@ -1,19 +1,10 @@
 {
   "functions": {
-    "api/chat.js": {
-      "maxDuration": 30
-    },
-    "api/gemini.js": {
-      "maxDuration": 30
-    },
-    "api/whisper.js": {
-      "maxDuration": 30
-    },
-    "api/search.js": {
-      "maxDuration": 30
-    },
-    "api/tts.js": {
-      "maxDuration": 30
-    }
+    "api/chat.js":     { "maxDuration": 30 },
+    "api/search.js":   { "maxDuration": 30 },
+    "api/celestiq.js": { "maxDuration": 30 },
+    "api/gemini.js":   { "maxDuration": 30 },
+    "api/whisper.js":  { "maxDuration": 30 },
+    "api/tts.js":      { "maxDuration": 30 }
   }
 }

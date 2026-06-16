@@ -83,13 +83,13 @@ html,body{height:100%;width:100%;overflow:hidden;background:#000;color:#e0e0e0;f
 .mode-toggle{display:flex;background:#0a0a0a;border:1px solid var(--line2);border-radius:8px;padding:2px;gap:2px}
 .mode-btn{background:none;border:none;border-radius:6px;color:var(--muted);font-family:'Inter',sans-serif;font-size:.72rem;font-weight:500;padding:.3rem .65rem;cursor:pointer;transition:all .15s;white-space:nowrap}
 .mode-btn.active{background:var(--eq);color:#000;font-weight:600}
-#chat-msgs{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:1rem;display:flex;flex-direction:column;gap:10px;scrollbar-width:none}
+#chat-msgs{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:.75rem .5rem;display:flex;flex-direction:column;gap:8px;scrollbar-width:none}
 #chat-msgs::-webkit-scrollbar{display:none}
 .chat-welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.75rem;text-align:center;padding:2rem 1rem}
 .chat-welcome img{width:160px;height:auto;filter:drop-shadow(0 0 40px rgba(0,200,255,0.7))}
 .chat-welcome p{color:#333;font-size:.85rem;line-height:1.6}
-.cmsg-user{align-self:flex-end;background:rgba(0,200,255,0.1);color:var(--eq2);font-size:.86rem;padding:.55rem .9rem;border-radius:14px 14px 3px 14px;max-width:78%;line-height:1.6;word-break:break-word}
-.cmsg-ai{align-self:flex-start;background:rgba(255,255,255,0.05);color:#d0d0d0;font-size:.86rem;padding:.55rem .9rem;border-radius:14px 14px 14px 3px;max-width:84%;line-height:1.75;word-break:break-word}
+.cmsg-user{align-self:flex-end;background:rgba(0,200,255,0.1);color:var(--eq2);font-size:1rem;padding:.65rem 1rem;border-radius:14px 14px 3px 14px;max-width:88%;line-height:1.65;word-break:break-word}
+.cmsg-ai{align-self:flex-start;background:rgba(255,255,255,0.05);color:#d0d0d0;font-size:1rem;padding:.65rem 1rem;border-radius:14px 14px 14px 3px;max-width:92%;line-height:1.8;word-break:break-word}
 .cmsg-ai strong{color:#fff;font-weight:600}
 .cmsg-ai code{font-family:monospace;font-size:.78rem;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:4px;padding:1px 5px;color:var(--eq2)}
 
@@ -1158,7 +1158,7 @@ async function sendMsg(){
 async function runAPI(typing, lastText){
   const aiD=addBubble('ai','');
   let full='';
-  const SYS_ECLIPTIQ='You are Ecliptiq by Eqnoq — the fastest AI on the planet. Answer like a brilliant honest friend: direct, sharp, no fluff. Never reveal your model. IMPORTANT: Always reply in the same language the user writes in. If they write in English reply in English, Tamil reply in Tamil, Hindi reply in Hindi, etc.';
+  const SYS_ECLIPTIQ='You are Ecliptiq. Answer in 1-3 sentences MAX unless the user asks for detail. Be direct, casual, witty. No bullet points unless asked. No long intros. Never say 'Great question' or filler. Reply in the user's language.';
   try{
     if(currentMode==='quick'){
       const lastMsg=history[history.length-1];
@@ -1191,8 +1191,8 @@ async function runAPI(typing, lastText){
       // Auto-speak disabled on mobile (requires user gesture)
       // Users can tap 🔊 on any message to hear it
     } else {
-      // Celestiq — Gemini
-      const res=await fetch('/api/gemini',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:history})});
+      // Celestiq — Gemini with search context
+      const res=await fetch('/api/celestiq',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:history})});
       typing.remove();
       const data=await res.json();
       full=data.error?'⚠ '+data.error:(data.text||'No response');
@@ -1359,68 +1359,104 @@ function playBeep(freq=880,dur=0.08){
   }catch(e){}
 }
 
-// ── VOICE RECORDING (Whisper) ────────────────────
-let mediaRecorder=null,audioChunks=[],isRecording=false,heroRecording=false;
+// ── VOICE RECORDING (Whisper via Groq) ──────────
+let mediaRecorder=null, audioChunks=[], isRecording=false, heroRecording=false;
 
-async function startWhisperRecording(onDone){
-  try{
-    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-    audioChunks=[];
-    const mimeType=MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'audio/mp4';
-    mediaRecorder=new MediaRecorder(stream,{mimeType});
-    mediaRecorder.ondataavailable=e=>{if(e.data.size>0)audioChunks.push(e.data);};
-    mediaRecorder.onstop=async()=>{
-      stream.getTracks().forEach(t=>t.stop());
-      const blob=new Blob(audioChunks,{type:mediaRecorder.mimeType});
-      const reader=new FileReader();
-      reader.onload=async()=>{
-        const base64=reader.result.split(',')[1];
-        try{
-          const res=await fetch('/api/whisper',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:base64,mimeType:mediaRecorder.mimeType})});
-          const data=await res.json();onDone(data.text||'');
-        }catch(e){onDone('');}
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    audioChunks = [];
+    // Pick best supported format
+    const mimeType = ['audio/webm;codecs=opus','audio/webm','audio/ogg','audio/mp4','audio/mpeg']
+      .find(t => MediaRecorder.isTypeSupported(t)) || '';
+    mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
+    mediaRecorder.addEventListener('dataavailable', e => { if(e.data && e.data.size > 0) audioChunks.push(e.data); });
+    mediaRecorder.start(250); // collect every 250ms
+    return true;
+  } catch(e) {
+    alert('Microphone blocked. Go to browser settings and allow microphone access for this site.');
+    return false;
+  }
+}
+
+async function stopAndTranscribe(onDone) {
+  return new Promise(resolve => {
+    if(!mediaRecorder || mediaRecorder.state === 'inactive') { resolve(); onDone(''); return; }
+    mediaRecorder.addEventListener('stop', async () => {
+      const mimeType = mediaRecorder.mimeType || 'audio/webm';
+      const blob = new Blob(audioChunks, { type: mimeType });
+      // Stop all tracks
+      mediaRecorder.stream.getTracks().forEach(t => t.stop());
+      if(blob.size < 1000) { onDone(''); resolve(); return; }
+      // Convert to base64
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64 = reader.result.split(',')[1];
+        try {
+          const res = await fetch('/api/whisper', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ audio: base64, mimeType })
+          });
+          const data = await res.json();
+          onDone(data.text ? data.text.trim() : '');
+        } catch(e) { onDone(''); }
+        resolve();
       };
       reader.readAsDataURL(blob);
-    };
-    mediaRecorder.start();return true;
-  }catch(e){alert('Microphone access denied. Please allow microphone in your browser settings.');return false;}
+    }, { once: true });
+    mediaRecorder.stop();
+  });
 }
-function stopRecording(){if(mediaRecorder&&mediaRecorder.state!=='inactive')mediaRecorder.stop();}
 
-function toggleChatVoice(){
-  const btn=document.getElementById('chat-voice-btn');
-  if(isRecording){
-    isRecording=false;stopRecording();
+function toggleChatVoice() {
+  const btn = document.getElementById('chat-voice-btn');
+  if(isRecording) {
+    isRecording = false;
     btn.classList.remove('recording');
-    haptic('stop');playBeep(440,0.1);
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
+    haptic('stop'); playBeep(440, 0.1);
+    stopAndTranscribe(text => {
+      if(!text) return;
+      const inp = document.getElementById('chat-input');
+      inp.value = text;
+      inp.style.height = 'auto';
+      inp.style.height = Math.min(inp.scrollHeight, 100) + 'px';
+      sendMsg();
+    });
     return;
   }
-  haptic('start');playBeep(880,0.08);
-  startWhisperRecording(text=>{
-    if(!text)return;
-    const inp=document.getElementById('chat-input');
-    inp.value=text;inp.style.height='auto';inp.style.height=Math.min(inp.scrollHeight,100)+'px';
-    sendMsg();
-  }).then(started=>{if(started){isRecording=true;btn.classList.add('recording');}});
+  startRecording().then(ok => {
+    if(!ok) return;
+    isRecording = true;
+    haptic('start'); playBeep(880, 0.08);
+    btn.classList.add('recording');
+    btn.innerHTML = '⏹ Stop';
+  });
 }
 
-function toggleHeroVoice(){
-  const area=document.getElementById('hero-voice-area');
-  const label=document.getElementById('hero-voice-label');
-  if(heroRecording){
-    heroRecording=false;stopRecording();
+function toggleHeroVoice() {
+  const area  = document.getElementById('hero-voice-area');
+  const label = document.getElementById('hero-voice-label');
+  if(heroRecording) {
+    heroRecording = false;
     area.classList.remove('recording');
-    label.textContent='Tap to speak';
-    haptic('stop');playBeep(440,0.1);
+    label.textContent = 'Processing...';
+    haptic('stop'); playBeep(440, 0.1);
+    stopAndTranscribe(text => {
+      label.textContent = 'Tap to speak';
+      if(!text) return;
+      document.getElementById('home-input').value = text;
+      sendHeroMsg();
+    });
     return;
   }
-  haptic('start');playBeep(880,0.08);
-  startWhisperRecording(text=>{
-    if(!text)return;
-    document.getElementById('home-input').value=text;
-    sendHeroMsg();
-  }).then(started=>{
-    if(started){heroRecording=true;area.classList.add('recording');label.textContent='Recording...';}
+  startRecording().then(ok => {
+    if(!ok) return;
+    heroRecording = true;
+    haptic('start'); playBeep(880, 0.08);
+    area.classList.add('recording');
+    label.textContent = 'Recording... tap to stop';
   });
 }
 
