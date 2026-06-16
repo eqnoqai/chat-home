@@ -16,61 +16,41 @@ export default async function handler(req, res) {
     : (lastMsg.content?.find?.(c => c.type === 'text')?.text || '');
 
   const today = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  // Only search for genuinely real-time queries
+  const needsSearch = SERPER_KEY && /\b(today|tonight|right now|currently|live|score|match|game|weather|news|latest|breaking|price|stock|crypto|bitcoin|who won|what happened|update|release|just|this week|this month|2024|2025|2026)\b/i.test(query);
+
   let searchContext = '';
 
-  // Always search if Serper key exists — real-time grounding for everything
-  if (SERPER_KEY && query.trim()) {
+  if (needsSearch) {
     try {
       const r = await fetch('https://google.serper.dev/search', {
         method: 'POST',
         headers: { 'X-API-KEY': SERPER_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ q: query, num: 6, gl: 'us', hl: 'en', tbs: 'qdr:d' }) // tbs=qdr:d = past 24 hours
+        body: JSON.stringify({ q: query, num: 5, gl: 'us', hl: 'en' })
       });
       const data = await r.json();
+      const organic = data.organic?.slice(0, 4) || [];
+      const answerBox = data.answerBox;
+      const news = data.news?.slice?.(0, 3) || [];
 
-      const organic    = data.organic?.slice(0, 5) || [];
-      const answerBox  = data.answerBox;
-      const knowledgeGraph = data.knowledgeGraph;
-      const news       = data.news?.slice?.(0, 4) || [];
-      const sports     = data.sports;
-
-      let ctx = `\n\n[TODAY IS ${today}. REAL-TIME WEB SEARCH RESULTS:]\n`;
-
-      if (answerBox?.answer)   ctx += `\nDirect answer: ${answerBox.answer}\n`;
-      if (answerBox?.snippet)  ctx += `Featured: ${answerBox.snippet}\n`;
-      if (answerBox?.title)    ctx += `Source: ${answerBox.title}\n`;
-      if (knowledgeGraph?.description) ctx += `\n${knowledgeGraph.description}\n`;
-
-      if (sports) {
-        ctx += `\nSports results:\n${JSON.stringify(sports).slice(0, 800)}\n`;
-      }
-
-      if (news.length) {
-        ctx += `\nLatest news:\n`;
-        news.forEach((n,i) => ctx += `${i+1}. ${n.title} — ${n.snippet} (${n.date||'recent'}) ${n.link}\n`);
-      }
-
-      if (organic.length) {
-        ctx += `\nWeb results:\n`;
-        organic.forEach((r,i) => ctx += `${i+1}. ${r.title}\n   ${r.snippet}\n   ${r.link}\n`);
-      }
-
-      ctx += `\n[END SEARCH. Use these results to give a current, accurate answer. Today is ${today}. Cite sources when helpful.]\n`;
-
-      if (organic.length || answerBox || sports || news.length) {
-        searchContext = ctx;
-      }
-    } catch(e) {
-      console.error('Serper error:', e.message);
-    }
+      let ctx = `\n[Today is ${today}. Real-time search results:]\n`;
+      if (answerBox?.answer) ctx += `Answer: ${answerBox.answer}\n`;
+      else if (answerBox?.snippet) ctx += `${answerBox.snippet}\n`;
+      if (news.length) news.forEach(n => ctx += `- ${n.title}: ${n.snippet}\n`);
+      if (organic.length) organic.forEach(r => ctx += `- ${r.title}: ${r.snippet}\n`);
+      ctx += '[End of search results]\n';
+      if (organic.length || answerBox) searchContext = ctx;
+    } catch(e) {}
   }
 
-  // If no Serper key, tell user directly
-  const noKeyNote = !SERPER_KEY
-    ? `\n[Note: Real-time search is not configured. If asked about live events, scores, or breaking news, be honest that you may not have the latest info and suggest checking a live source.]\n`
-    : '';
-
-  const SYS = `You are Ecliptiq by Eqnoq — the fastest AI on the planet. You answer like a brilliant honest friend: direct, sharp, no fluff. Never reveal your model or that you are an AI. Today's date is ${today}. IMPORTANT: Always reply in the same language the user writes in.${searchContext ? ' You have real-time web search results — use them to give accurate, current answers. If you found scores or news, share them directly and confidently.' : noKeyNote}`;
+  const SYS = `You are Ecliptiq by Eqnoq — a sharp, direct AI that answers like a knowledgeable friend. Rules:
+- Answer in 1-4 sentences for simple questions. Use numbered points only when listing multiple items.
+- No emojis. No filler phrases like "Great question" or "Certainly".
+- No unnecessary links or social media references. Only cite a source if it's directly relevant.
+- Reply in the same language the user writes in.
+- Today is ${today}.
+${searchContext ? '- You have real-time search data below. Use it when relevant.' : '- You have knowledge up to early 2025. Be honest if something may have changed.'}`;
 
   try {
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {

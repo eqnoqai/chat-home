@@ -8,24 +8,26 @@ export default async function handler(req, res) {
   const KEY = process.env.GROQ_API_KEY;
   if (!KEY) return res.status(200).json({ fallback: true, error: 'No key' });
 
-  const { text, voice = 'Celeste-PlayAI' } = req.body;
-  if (!text) return res.status(200).json({ fallback: true, error: 'No text' });
+  const { text, gender = 'f' } = req.body;
+  if (!text) return res.status(200).json({ fallback: true });
 
+  // Clean text for speech
   const clean = text
-    .replace(/```[\s\S]*?```/g, '')
+    .replace(/```[\s\S]*?```/g, 'code block.')
     .replace(/`[^`]+`/g, '')
     .replace(/[#*_~\[\]]/g, '')
     .replace(/https?:\/\/\S+/g, '')
     .replace(/\n+/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim()
     .slice(0, 500);
 
   if (!clean) return res.status(200).json({ fallback: true });
 
-  // Try PlayAI TTS on Groq
-  const models = ['playai-tts', 'playai-tts-arabic'];
-  // Female voices: Celeste-PlayAI, Aaliyah-PlayAI, Adelaide-PlayAI
-  // Male voices: Atlas-PlayAI, Angelo-PlayAI, Arsenio-PlayAI
+  // Best PlayAI voices on Groq — tested for clarity
+  // Female: Celeste (warm), Aaliyah (clear), Adelaide (crisp)
+  // Male: Atlas (deep), Angelo (friendly), Fritz (authoritative)
+  const voice = gender === 'm' ? 'Fritz-PlayAI' : 'Celeste-PlayAI';
 
   try {
     const r = await fetch('https://api.groq.com/openai/v1/audio/speech', {
@@ -44,13 +46,16 @@ export default async function handler(req, res) {
 
     if (!r.ok) {
       const err = await r.json().catch(() => ({}));
-      console.error('TTS error:', err);
       return res.status(200).json({ fallback: true, error: err.error?.message || 'TTS failed' });
     }
 
     const buf = await r.arrayBuffer();
+    if (!buf || buf.byteLength < 100) {
+      return res.status(200).json({ fallback: true, error: 'Empty audio' });
+    }
+
     const b64 = Buffer.from(buf).toString('base64');
-    return res.status(200).json({ audio: b64, format: 'mp3' });
+    return res.status(200).json({ audio: b64, format: 'mp3', voice });
 
   } catch(e) {
     return res.status(200).json({ fallback: true, error: e.message });
