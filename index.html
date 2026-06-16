@@ -192,8 +192,8 @@ input[type=range]{width:100%;accent-color:var(--eq);cursor:pointer}
 #dr.on{right:0}
 .dr-top{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.1rem .7rem;border-bottom:1px solid #111}
 .dr-x{background:none;border:none;color:#555;font-size:1.3rem;cursor:pointer;line-height:1;padding:.2rem}
-.dr-sec{font-size:9px;font-weight:700;color:#1a1a1a;text-transform:uppercase;letter-spacing:.1em;padding:.7rem 1.1rem .25rem}
-.dr-item{display:flex;align-items:center;gap:9px;padding:.6rem 1.1rem;color:#555;font-family:'Inter',sans-serif;font-size:.83rem;cursor:pointer;border:none;background:none;width:100%;text-align:left;transition:color .15s;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.dr-sec{font-size:9px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.1em;padding:.7rem 1.1rem .25rem}
+.dr-item{display:flex;align-items:center;gap:9px;padding:.6rem 1.1rem;color:#aaa;font-family:'Inter',sans-serif;font-size:.83rem;cursor:pointer;border:none;background:none;width:100%;text-align:left;transition:color .15s;text-decoration:none;-webkit-tap-highlight-color:transparent}
 .dr-item:active,.dr-item:hover{color:#ccc;background:rgba(255,255,255,.04)}
 .dr-item svg{width:15px;height:15px;flex-shrink:0}
 .dr-models{display:flex;gap:5px;padding:.4rem 1.1rem}
@@ -201,7 +201,7 @@ input[type=range]{width:100%;accent-color:var(--eq);cursor:pointer}
 .dm.on{background:var(--eq);color:#000;font-weight:600}
 .dr-recent{flex:1;overflow-y:auto;padding:0 .65rem;scrollbar-width:none}
 .dr-recent::-webkit-scrollbar{display:none}
-.dr-ri{display:block;padding:.38rem .5rem;border-radius:6px;font-size:.75rem;color:#252525;cursor:pointer;border:none;background:none;width:100%;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Inter',sans-serif;transition:color .15s}
+.dr-ri{display:block;padding:.38rem .5rem;border-radius:6px;font-size:.75rem;color:#888;cursor:pointer;border:none;background:none;width:100%;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Inter',sans-serif;transition:color .15s}
 .dr-ri:active,.dr-ri:hover{color:#777;background:rgba(255,255,255,.03)}
 .dr-auth{padding:.9rem 1.1rem;border-top:1px solid #111;display:flex;flex-direction:column;gap:.45rem}
 .auth-btn{width:100%;padding:.65rem;border-radius:9px;border:none;font-family:'Inter',sans-serif;font-size:.83rem;font-weight:600;cursor:pointer;transition:all .15s}
@@ -236,15 +236,31 @@ body.light-mode #msg-in{background:#fff;border-color:rgba(0,0,0,.12);color:#1a20
 body.light-mode #send-btn,body.light-mode .hc-send{background:#0090bb}
 body.light-mode .tab.on{color:#0090bb}
 body.light-mode .mpill.on{background:#0090bb;border-color:#0090bb}
-body.anime-mode{background:#0d0018;color:#fce4ff}
-body.anime-mode .pg{background:#0d0018}
-body.anime-mode #topnav,body.anime-mode #bar,body.anime-mode #input-area{background:rgba(13,0,24,.97);border-color:rgba(255,100,220,.12)}
-body.anime-mode .bub-a{background:rgba(255,100,220,.07);color:#fce4ff;border-color:rgba(255,100,220,.1)}
-body.anime-mode .bub-u{background:rgba(255,100,220,.15);color:#ffb3f0}
-body.anime-mode #send-btn,body.anime-mode .hc-send{background:#ff64dc;color:#0d0018}
-body.anime-mode #msg-in{background:rgba(255,100,220,.06);border-color:rgba(255,100,220,.15);color:#fce4ff}
+body.anime-mode{background:#1a0a2e;color:#ffe4f0;font-family:'Comic Sans MS','Chalkboard SE','Marker Felt',cursive}
+body.anime-mode .pg{background:#1a0a2e}
+body.anime-mode #topnav,body.anime-mode #bar,body.anime-mode #input-area{background:rgba(26,10,46,.97);border-color:rgba(255,150,200,.2)}
+body.anime-mode .bub-a{background:rgba(255,200,230,.08);color:#ffe4f0;border:1px solid rgba(255,150,200,.25);border-radius:20px 20px 20px 4px}
+body.anime-mode .bub-u{background:linear-gradient(135deg,rgba(200,100,255,.25),rgba(255,100,180,.25));color:#ffe0f5;border-radius:20px 20px 4px 20px}
+body.anime-mode #send-btn,body.anime-mode .hc-send{background:linear-gradient(135deg,#ff64dc,#c864ff);color:#fff;border:none}
+body.anime-mode #msg-in{background:rgba(255,150,200,.08);border:1px solid rgba(255,150,200,.2);color:#ffe4f0;border-radius:20px}
 body.anime-mode .tab.on{color:#ff64dc}
-body.anime-mode .mpill.on{background:#ff64dc;color:#0d0018;border-color:#ff64dc}
+body.anime-mode .mpill.on{background:linear-gradient(135deg,#ff64dc,#c864ff);color:#fff;border:none}
+body.anime-mode #sidebar{background:#120820;border-right:1px solid rgba(255,150,200,.2)}
+body.anime-mode .card,body.anime-mode .pc,body.anime-mode .gc,body.anime-mode .s-card{background:rgba(255,200,230,.06);border:1px solid rgba(255,150,200,.2)}
+body.anime-mode .hero-box,body.anime-mode .home-chat{background:rgba(26,10,46,.9);border:1px solid rgba(255,150,200,.25)}
+body.anime-mode #dr{background:#120820;border-left:1px solid rgba(255,150,200,.15)}
+body.anime-mode #ov{background:rgba(26,10,46,.7)}
+body.anime-mode .home-cta{background:linear-gradient(135deg,#ff64dc,#c864ff);color:#fff;border:none}
+body.anime-mode .act-card{border-color:rgba(255,150,200,.2);background:rgba(255,200,230,.05)}
+body.anime-mode .act-card svg{color:#ff64dc}
+body.anime-mode .dots{background:rgba(255,200,230,.08);border-color:rgba(255,150,200,.2)}
+body.anime-mode .dot{background:rgba(255,100,220,.4)}
+body.anime-mode .ma{background:rgba(255,150,200,.1);border-color:rgba(255,150,200,.2);color:#ffb0d0}
+body.anime-mode #hc-inp{color:#ffe4f0}
+body.anime-mode #hc-inp::placeholder{color:rgba(255,150,200,.3)}
+body.anime-mode input[type=range]{accent-color:#ff64dc}
+body.anime-mode .tog.on{background:#ff64dc}
+body.anime-mode .pill.on{background:#ff64dc;border-color:#ff64dc}
 body.scifi-mode{background:#000c10;color:#9ffff0;font-family:'Courier New',monospace}
 body.scifi-mode .pg{background:#000c10}
 body.scifi-mode #topnav,body.scifi-mode #bar,body.scifi-mode #input-area{background:rgba(0,12,16,.97);border-color:rgba(0,255,210,.12)}
@@ -268,6 +284,12 @@ body.scifi-mode .mpill.on{background:#00ffe0;color:#000;border-color:#00ffe0}
   #topnav,#bar{left:0}
 }
 }
+
+/* Image fullscreen viewer */
+#img-viewer{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1000;align-items:center;justify-content:center;cursor:zoom-out;backdrop-filter:blur(8px)}
+#img-viewer.on{display:flex}
+#img-viewer img{max-width:92vw;max-height:90dvh;border-radius:14px;box-shadow:0 0 80px rgba(0,0,0,.8)}
+#img-viewer-close{position:absolute;top:1rem;right:1rem;background:rgba(255,255,255,.12);border:none;color:#fff;font-size:1.4rem;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
 </style>
 </head>
 <body>
@@ -279,12 +301,12 @@ body.scifi-mode .mpill.on{background:#00ffe0;color:#000;border-color:#00ffe0}
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> New chat
     </button>
   </div>
-  <div style="font-size:9px;font-weight:700;color:#1a1a1a;text-transform:uppercase;letter-spacing:.1em;padding:.6rem .9rem .2rem">Navigate</div>
-  <button style="display:flex;align-items:center;gap:8px;padding:.38rem .75rem;margin:1px .4rem;border-radius:7px;font-family:'Inter',sans-serif;font-size:.77rem;color:#3a3a3a;cursor:pointer;border:none;background:none;width:calc(100% - .8rem);text-align:left" onclick="goTo('home')">🏠 Home</button>
-  <button style="display:flex;align-items:center;gap:8px;padding:.38rem .75rem;margin:1px .4rem;border-radius:7px;font-family:'Inter',sans-serif;font-size:.77rem;color:#3a3a3a;cursor:pointer;border:none;background:none;width:calc(100% - .8rem);text-align:left" onclick="goTo('chat')">💬 Chat</button>
-  <button style="display:flex;align-items:center;gap:8px;padding:.38rem .75rem;margin:1px .4rem;border-radius:7px;font-family:'Inter',sans-serif;font-size:.77rem;color:#3a3a3a;cursor:pointer;border:none;background:none;width:calc(100% - .8rem);text-align:left" onclick="goTo('discover')">🔭 Discover</button>
-  <button style="display:flex;align-items:center;gap:8px;padding:.38rem .75rem;margin:1px .4rem;border-radius:7px;font-family:'Inter',sans-serif;font-size:.77rem;color:#3a3a3a;cursor:pointer;border:none;background:none;width:calc(100% - .8rem);text-align:left" onclick="goTo('pricing')">💳 Pricing</button>
-  <button style="display:flex;align-items:center;gap:8px;padding:.38rem .75rem;margin:1px .4rem;border-radius:7px;font-family:'Inter',sans-serif;font-size:.77rem;color:#3a3a3a;cursor:pointer;border:none;background:none;width:calc(100% - .8rem);text-align:left" onclick="goTo('settings')">⚙️ Settings</button>
+  <div style="font-size:9px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.1em;padding:.6rem .9rem .2rem">Navigate</div>
+  <button style="display:flex;align-items:center;gap:8px;padding:.38rem .75rem;margin:1px .4rem;border-radius:7px;font-family:'Inter',sans-serif;font-size:.77rem;color:#aaa;cursor:pointer;border:none;background:none;width:calc(100% - .8rem);text-align:left" onclick="goTo('home')">🏠 Home</button>
+  <button style="display:flex;align-items:center;gap:8px;padding:.38rem .75rem;margin:1px .4rem;border-radius:7px;font-family:'Inter',sans-serif;font-size:.77rem;color:#aaa;cursor:pointer;border:none;background:none;width:calc(100% - .8rem);text-align:left" onclick="goTo('chat')">💬 Chat</button>
+  <button style="display:flex;align-items:center;gap:8px;padding:.38rem .75rem;margin:1px .4rem;border-radius:7px;font-family:'Inter',sans-serif;font-size:.77rem;color:#aaa;cursor:pointer;border:none;background:none;width:calc(100% - .8rem);text-align:left" onclick="goTo('discover')">🔭 Discover</button>
+  <button style="display:flex;align-items:center;gap:8px;padding:.38rem .75rem;margin:1px .4rem;border-radius:7px;font-family:'Inter',sans-serif;font-size:.77rem;color:#aaa;cursor:pointer;border:none;background:none;width:calc(100% - .8rem);text-align:left" onclick="goTo('pricing')">💳 Pricing</button>
+  <button style="display:flex;align-items:center;gap:8px;padding:.38rem .75rem;margin:1px .4rem;border-radius:7px;font-family:'Inter',sans-serif;font-size:.77rem;color:#aaa;cursor:pointer;border:none;background:none;width:calc(100% - .8rem);text-align:left" onclick="goTo('settings')">⚙️ Settings</button>
   <a style="display:flex;align-items:center;gap:8px;padding:.38rem .75rem;margin:1px .4rem;border-radius:7px;font-family:'Inter',sans-serif;font-size:.77rem;color:#3a3a3a;cursor:pointer;text-decoration:none;width:calc(100% - .8rem)" href="https://solstiq.space" target="_blank">
     <svg viewBox="0 0 470.59 159.15" height="10" fill="#f4a623" style="flex-shrink:0;opacity:.7"><g>
       <polygon class="cls-1" points="358.33 95.31 346.21 109.17 346.16 36.07 358.33 36.07 358.33 95.31"/>
@@ -297,8 +319,8 @@ body.scifi-mode .mpill.on{background:#00ffe0;color:#000;border-color:#00ffe0}
         <polygon class="cls-1" points="206.37 95.89 197.88 107.47 156.58 107.47 156.59 36.08 168.69 36.06 168.68 95.85 206.37 95.89"/>
       </g></svg> Solstiq
   </a>
-  <div style="font-size:9px;font-weight:700;color:#1a1a1a;text-transform:uppercase;letter-spacing:.1em;padding:.6rem .9rem .2rem">Recent</div>
-  <div id="sb-recent" style="flex:1;overflow-y:auto;padding:0 .4rem;scrollbar-width:none"></div>
+  <div style="font-size:9px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.1em;padding:.6rem .9rem .2rem">Recent</div>
+  <div id="sb-recent" style="display:none;flex:1;overflow-y:auto;padding:0 .4rem;scrollbar-width:none"></div>
   <div style="padding:.6rem .7rem;border-top:1px solid #111">
     <label style="font-size:9px;font-weight:700;color:#1a1a1a;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:.3rem">Model</label>
     <div style="display:flex;gap:4px;margin-bottom:.5rem">
@@ -498,8 +520,11 @@ body.scifi-mode .mpill.on{background:#00ffe0;color:#000;border-color:#00ffe0}
     <button class="dm on" id="dm-q" onclick="setMode('quick');closeDrawer()">⚡ Ecliptiq</button>
     <button class="dm" id="dm-d" onclick="setMode('deep');closeDrawer()">🔭 Celestiq</button>
   </div>
-  <div class="dr-sec">Recent Chats</div>
-  <div class="dr-recent" id="dr-recent"><div style="padding:.3rem .5rem;font-size:.72rem;color:#1a1a1a">No chats yet</div></div>
+  <button onclick="toggleRecent()" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:.6rem 1.1rem;background:none;border:none;cursor:pointer;font-family:inherit">
+    <span style="font-size:9px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.1em">Recent Chats</span>
+    <span id="recent-arrow" style="color:#555;font-size:.75rem;transition:transform .2s">▼</span>
+  </button>
+  <div class="dr-recent" id="dr-recent" style="display:none"><div style="padding:.3rem .5rem;font-size:.72rem;color:#888">No chats yet</div></div>
   <div class="dr-sec">Navigate</div>
   <button class="dr-item" onclick="goTo('home');closeDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Home</button>
   <button class="dr-item" onclick="goTo('chat');closeDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Chat</button>
@@ -709,7 +734,7 @@ function renderRecent() {
   var sb = document.getElementById('sb-recent');
   if (sb) sb.innerHTML = sessions.length
     ? sessions.slice(0, 20).map(function(s, i) {
-        return '<button class="dr-ri" onclick="loadSession(' + i + ');goTo(\'chat\')" style="display:block;padding:.3rem .55rem;border-radius:6px;font-size:.72rem;color:#252525;cursor:pointer;border:none;background:none;width:100%;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:inherit">' + esc(s.title) + '</button>';
+        return '<button class="dr-ri" onclick="loadSession(' + i + ');goTo(\'chat\')" style="display:block;padding:.3rem .55rem;border-radius:6px;font-size:.72rem;color:#888;cursor:pointer;border:none;background:none;width:100%;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:inherit">' + esc(s.title) + '</button>';
       }).join('')
     : '<div style="padding:.3rem .6rem;font-size:.72rem;color:#1a1a1a">No chats yet</div>';
 }
@@ -732,6 +757,33 @@ function renderMd(s) {
   h = h.replace(/^(?!<)(.*\S.*)$/gm, '<p style="margin:.3rem 0;line-height:1.75">$1</p>');
   return h;
 }
+
+function openImgFull(src) {
+  document.getElementById('img-viewer-img').src = src;
+  document.getElementById('img-viewer').classList.add('on');
+}
+function closeImgFull() {
+  document.getElementById('img-viewer').classList.remove('on');
+}
+
+
+var recentOpen = false;
+var sbRecentOpen = false;
+function toggleRecent() {
+  recentOpen = !recentOpen;
+  var el = document.getElementById('dr-recent');
+  var arrow = document.getElementById('recent-arrow');
+  if (el) el.style.display = recentOpen ? 'block' : 'none';
+  if (arrow) arrow.style.transform = recentOpen ? 'rotate(180deg)' : '';
+}
+function toggleSbRecent() {
+  sbRecentOpen = !sbRecentOpen;
+  var el = document.getElementById('sb-recent');
+  var arrow = document.getElementById('sb-recent-arrow');
+  if (el) el.style.display = sbRecentOpen ? 'block' : 'none';
+  if (arrow) arrow.style.transform = sbRecentOpen ? 'rotate(180deg)' : '';
+}
+
 function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
 // ═══════════════════════════════════════════════
@@ -911,7 +963,7 @@ async function genImage(text) {
     var data = await res.json();
     typing.remove();
     if (data.url) {
-      aiB.innerHTML = '<div style="font-size:.85rem;color:#666;margin-bottom:.45rem">🎨 Here you go:</div><img src="' + data.url + '" style="max-width:100%;border-radius:12px;border:1px solid #1a1a1a;display:block"><div style="font-size:.75rem;color:#333;margin-top:.35rem">' + esc(prompt) + '</div>';
+      aiB.innerHTML = '<div style="font-size:.85rem;color:#666;margin-bottom:.4rem">🎨 Here you go:</div><img src="' + data.url + '" onclick="openImgFull(this.src)" style="width:180px;height:180px;object-fit:cover;border-radius:12px;border:1px solid #1a1a1a;display:block;cursor:zoom-in" title="Click to expand"><div style="font-size:.72rem;color:#333;margin-top:.3rem">' + esc(prompt) + '</div>';
       var dl = document.createElement('a'); dl.href = data.url; dl.download = 'eqnoq.jpg'; dl.target = '_blank'; dl.textContent = '⬇ Download'; dl.className = 'ma'; dl.style.cssText = 'display:inline-block;margin-top:5px;text-decoration:none';
       aiB.appendChild(dl);
       hist.push({ role: 'assistant', content: 'Generated image for: ' + prompt });
@@ -1167,5 +1219,11 @@ function applyGender() {
 function setGender(g) { vGender = g; localStorage.setItem('eq_vg', g); applyGender(); }
 function setSpd(v) { vSpeed = parseFloat(v); localStorage.setItem('eq_vs', vSpeed); document.getElementById('spd-val').textContent = vSpeed.toFixed(1) + 'x'; }
 </script>
+
+<div id="img-viewer" onclick="closeImgFull()">
+  <button id="img-viewer-close" onclick="closeImgFull()">✕</button>
+  <img id="img-viewer-img" src="" alt="">
+</div>
+
 </body>
 </html>
