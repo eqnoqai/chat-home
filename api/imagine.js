@@ -6,14 +6,14 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
   const FAL_KEY = process.env.FAL_API_KEY;
-  if (!FAL_KEY) return res.status(500).json({ error: 'FAL_API_KEY not configured. Get a free key at fal.ai — includes $10 free credit.' });
+  if (!FAL_KEY) return res.status(500).json({ error: 'FAL_API_KEY not configured. Get a free key at fal.ai' });
 
-  const { prompt, width = 1024, height = 1024 } = req.body;
-  if (!prompt) return res.status(400).json({ error: 'No prompt provided' });
+  const { prompt } = req.body;
+  if (!prompt) return res.status(400).json({ error: 'No prompt' });
 
   try {
-    // Submit to fal.ai queue
-    const submit = await fetch('https://queue.fal.run/fal-ai/flux/schnell', {
+    // Use synchronous endpoint — simpler, no polling needed
+    const r = await fetch('https://fal.run/fal-ai/flux/schnell', {
       method: 'POST',
       headers: {
         'Authorization': `Key ${FAL_KEY}`,
@@ -21,38 +21,28 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         prompt,
-        image_size: { width, height },
+        image_size: 'square_hd',
         num_inference_steps: 4,
         num_images: 1,
         enable_safety_checker: true
       })
     });
 
-    if (!submit.ok) {
-      const err = await submit.json().catch(() => ({}));
-      return res.status(submit.status).json({ error: err.detail || err.message || 'Submit failed' });
-    }
+    const text = await r.text();
+    if (!text) return res.status(500).json({ error: 'Empty response from fal.ai' });
 
-    const { request_id } = await submit.json();
+    let data;
+    try { data = JSON.parse(text); }
+    catch(e) { return res.status(500).json({ error: 'Bad response from fal.ai: ' + text.slice(0, 100) }); }
 
-    // Poll for result (max 60s)
-    for (let i = 0; i < 30; i++) {
-      await new Promise(r => setTimeout(r, 2000));
-      const poll = await fetch(`https://queue.fal.run/fal-ai/flux/schnell/requests/${request_id}`, {
-        headers: { 'Authorization': `Key ${FAL_KEY}` }
-      });
-      const status = await poll.json();
-      if (status.status === 'COMPLETED' || status.images) {
-        const images = status.images || status.output?.images || [];
-        const url = images[0]?.url || images[0];
-        if (url) return res.status(200).json({ url });
-        return res.status(500).json({ error: 'No image in response' });
-      }
-      if (status.status === 'FAILED') {
-        return res.status(500).json({ error: status.error || 'Generation failed' });
-      }
-    }
-    return res.status(408).json({ error: 'Timed out. Try again.' });
+    if (!r.ok) return res.status(r.status).json({ error: data.detail || data.message || 'fal.ai error' });
+
+    const images = data.images || [];
+    const url = images[0]?.url || images[0];
+    if (!url) return res.status(500).json({ error: 'No image URL in response. Raw: ' + JSON.stringify(data).slice(0,200) });
+
+    return res.status(200).json({ url });
+
   } catch(e) {
     return res.status(500).json({ error: e.message });
   }
