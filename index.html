@@ -1257,34 +1257,98 @@ function toggleHeroVoice(){
 
 // ── TEXT TO SPEECH (Ecliptiq only) ───────────────────
 let currentUtterance = null;
+// Detect language from text using Unicode ranges
+function detectLang(text) {
+  const t = text.slice(0, 200);
+  if (/[\u0900-\u097F]/.test(t)) return 'hi-IN';  // Hindi/Devanagari
+  if (/[\u0600-\u06FF]/.test(t)) return 'ar-SA';  // Arabic
+  if (/[\u4E00-\u9FFF]/.test(t)) return 'zh-CN';  // Chinese
+  if (/[\u3040-\u30FF]/.test(t)) return 'ja-JP';  // Japanese
+  if (/[\uAC00-\uD7AF]/.test(t)) return 'ko-KR';  // Korean
+  if (/[\u0400-\u04FF]/.test(t)) return 'ru-RU';  // Russian/Cyrillic
+  if (/[\u0370-\u03FF]/.test(t)) return 'el-GR';  // Greek
+  if (/[\u0E00-\u0E7F]/.test(t)) return 'th-TH';  // Thai
+  if (/[\u0B80-\u0BFF]/.test(t)) return 'ta-IN';  // Tamil
+  if (/[\u0C00-\u0C7F]/.test(t)) return 'te-IN';  // Telugu
+  if (/[\u0D00-\u0D7F]/.test(t)) return 'ml-IN';  // Malayalam
+  if (/[\u0A80-\u0AFF]/.test(t)) return 'gu-IN';  // Gujarati
+  if (/[\u0A00-\u0A7F]/.test(t)) return 'pa-IN';  // Punjabi
+  if (/[\u0C80-\u0CFF]/.test(t)) return 'kn-IN';  // Kannada
+  // Latin-based language detection by common words
+  if (/\b(le|la|les|un|une|des|je|tu|il|elle|nous|vous|ils|est|sont|avec|dans|pour)\b/i.test(t)) return 'fr-FR';
+  if (/\b(el|la|los|las|un|una|es|son|con|para|por|que|del|al|se|lo)\b/i.test(t)) return 'es-ES';
+  if (/\b(der|die|das|ein|eine|ist|sind|mit|für|und|oder|ich|du|er|sie|wir|sie)\b/i.test(t)) return 'de-DE';
+  if (/\b(il|la|le|un|una|è|sono|con|per|che|del|della|ho|hai|ha)\b/i.test(t)) return 'it-IT';
+  if (/\b(o|a|os|as|um|uma|é|são|com|para|que|do|da|dos|das|eu|tu)\b/i.test(t)) return 'pt-BR';
+  if (/\b(de|het|een|is|zijn|met|voor|en|of|ik|jij|hij|zij|wij)\b/i.test(t)) return 'nl-NL';
+  return 'en-US';
+}
+
+function getBestVoice(lang, gender) {
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices.length) return null;
+
+  const langBase = lang.split('-')[0]; // e.g. 'hi' from 'hi-IN'
+
+  // Try exact lang + gender match
+  let voice = voices.find(v =>
+    v.lang === lang &&
+    (gender === 'female'
+      ? /female|woman|girl|samantha|karen|zira|victoria|tessa|fiona/i.test(v.name)
+      : /male|man|alex|daniel|oliver|fred|jorge/i.test(v.name))
+  );
+
+  // Try exact lang any gender
+  if (!voice) voice = voices.find(v => v.lang === lang);
+
+  // Try base language match
+  if (!voice) voice = voices.find(v => v.lang.startsWith(langBase));
+
+  // Final fallback — any English voice
+  if (!voice) voice = voices.find(v => v.lang.startsWith('en'));
+
+  return voice || null;
+}
+
 function speakText(text, btn, force) {
   if(!('speechSynthesis' in window)) return;
   if(isMuted && !force) return;
   window.speechSynthesis.cancel();
-  if(currentUtterance && btn && !force) { currentUtterance = null; if(btn) { btn.innerHTML='🔊'; } return; }
-  const clean = text.replace(/[#*`_~\[\]]/g,'').replace(/\n/g,' ').replace(/https?:\/\/\S+/g,'').trim().slice(0,1000);
+  if(currentUtterance && btn && !force) {
+    currentUtterance = null;
+    if(btn) btn.innerHTML = '🔊';
+    return;
+  }
+  const clean = text.replace(/[#*`_~\[\]]/g,'').replace(/\n/g,' ').replace(/https?:\/\/\S+/g,'').trim().slice(0,1200);
   if(!clean) return;
+
+  const lang = detectLang(clean);
   const utt = new SpeechSynthesisUtterance(clean);
+  utt.lang = lang;
   utt.rate = voiceSpeed;
   utt.pitch = voiceGender === 'female' ? 1.1 : 0.85;
   utt.volume = 1;
+
+  // Wait for voices to load if empty
   const voices = window.speechSynthesis.getVoices();
-  // Pick voice by gender preference
-  let preferred;
-  if(voiceGender === 'female') {
-    preferred = voices.find(v => v.name.includes('Samantha') || v.name.includes('Zira') || v.name.includes('Karen') || (v.lang==='en-US' && v.name.toLowerCase().includes('female')));
-    if(!preferred) preferred = voices.find(v => v.lang==='en-US' || v.lang==='en-GB');
-  } else {
-    preferred = voices.find(v => v.name.includes('Alex') || v.name.includes('Daniel') || v.name.includes('Google UK English Male') || (v.lang==='en-US' && v.name.toLowerCase().includes('male')));
-    if(!preferred) preferred = voices.find(v => v.lang==='en-US');
+  if (voices.length) {
+    const v = getBestVoice(lang, voiceGender);
+    if(v) utt.voice = v;
   }
-  if(preferred) utt.voice = preferred;
-  utt.onstart = () => { currentUtterance = utt; if(btn) btn.innerHTML='⏹'; };
-  utt.onend = () => { currentUtterance = null; if(btn) btn.innerHTML=isMuted?'🔇':'🔊'; };
+
+  utt.onstart = () => { currentUtterance = utt; if(btn) btn.innerHTML = '⏹'; };
+  utt.onend   = () => { currentUtterance = null; if(btn) btn.innerHTML = isMuted ? '🔇' : '🔊'; };
+  utt.onerror = () => { currentUtterance = null; if(btn) btn.innerHTML = '🔊'; };
   window.speechSynthesis.speak(utt);
 }
 // Load voices async
-if('speechSynthesis' in window) window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+if('speechSynthesis' in window) {
+  window.speechSynthesis.onvoiceschanged = () => {
+    window.speechSynthesis.getVoices(); // cache voices
+  };
+  // Trigger voice load
+  window.speechSynthesis.getVoices();
+}
 
 // ── HAPTIC FEEDBACK ───────────────────────────────────
 function haptic(type) {
