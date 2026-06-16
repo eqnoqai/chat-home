@@ -44,7 +44,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:#000;color:#e0e0e0;f
 .tab-btn:active{background:rgba(255,255,255,0.04)}
 
 /* HOME PAGE */
-#homePage{justify-content:center;align-items:center;padding-left:1rem;padding-right:1rem;background:#000;position:relative;overflow:hidden}
+#homePage{justify-content:center;align-items:center;padding-left:1rem;padding-right:1rem;background:var(--black);position:relative;overflow:hidden}
 #homeCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.4}
 .home-inner{position:relative;z-index:2;width:100%;max-width:480px;display:flex;flex-direction:column;align-items:center}
 .home-logo{width:min(72vw,310px);height:auto;display:block;margin-bottom:.65rem;filter:drop-shadow(0 0 60px rgba(0,200,255,0.85)) drop-shadow(0 0 20px rgba(0,220,255,0.6))}
@@ -77,8 +77,8 @@ html,body{height:100%;width:100%;overflow:hidden;background:#000;color:#e0e0e0;f
 .home-cta:active{background:#e8e8e8;transform:scale(.98)}
 
 /* CHAT PAGE */
-#chatPage{background:#000}
-.chat-header{display:flex;align-items:center;justify-content:space-between;padding:.6rem 1rem;border-bottom:1px solid var(--line);flex-shrink:0;background:var(--bg1)}
+#chatPage{background:var(--black)}
+.chat-header{display:flex;align-items:center;justify-content:space-between;padding:.6rem 1rem;border-bottom:1px solid var(--line);flex-shrink:0;background:var(--bg1);color:var(--text)}
 .chat-header-title{font-size:.85rem;font-weight:600;color:var(--text);display:flex;align-items:center;gap:7px}
 .mode-toggle{display:flex;background:#0a0a0a;border:1px solid var(--line2);border-radius:8px;padding:2px;gap:2px}
 .mode-btn{background:none;border:none;border-radius:6px;color:var(--muted);font-family:'Inter',sans-serif;font-size:.72rem;font-weight:500;padding:.3rem .65rem;cursor:pointer;transition:all .15s;white-space:nowrap}
@@ -94,7 +94,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:#000;color:#e0e0e0;f
 .cmsg-ai code{font-family:monospace;font-size:.78rem;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:4px;padding:1px 5px;color:var(--eq2)}
 
 /* CHAT INPUT */
-.chat-input-wrap{flex-shrink:0;padding:.6rem .85rem .5rem;border-top:1px solid var(--line);background:var(--bg1)}
+.chat-input-wrap{flex-shrink:0;padding:.6rem .85rem .5rem;border-top:1px solid var(--line);background:var(--bg1);color:var(--text)}
 #file-preview-bar{display:none;align-items:center;gap:6px;flex-wrap:wrap;padding-bottom:.5rem}
 .file-thumb{position:relative}
 .file-thumb img{height:44px;width:44px;object-fit:cover;border-radius:7px;border:1px solid var(--line2);display:block}
@@ -211,11 +211,11 @@ html,body{height:100%;width:100%;overflow:hidden;background:#000;color:#e0e0e0;f
 
 /* RESPONSIVE */
 @media(min-width:768px){
-  #bottombar{display:none}
   #desktopSb{display:flex!important}
   #app{flex-direction:row}
-  .page{left:220px;padding-top:calc(52px + var(--sat))}
+  .page{left:220px;padding-top:calc(52px + var(--sat));padding-bottom:calc(64px + var(--sab))}
   #topnav{left:220px}
+  #bottombar{left:220px}
   #nav-menu-btn{display:none!important}
   .nav-center{display:flex!important}
 }
@@ -230,9 +230,25 @@ html,body{height:100%;width:100%;overflow:hidden;background:#000;color:#e0e0e0;f
 
 
 /* SETTINGS */
-.theme-card{background:var(--bg1);border:1px solid var(--line);border-radius:12px;padding:1rem;cursor:pointer;text-align:center;transition:all .15s;font-family:'Inter',sans-serif;width:100%}
+.theme-card{border:2px solid transparent;border-radius:12px;padding:1rem;cursor:pointer;text-align:center;transition:all .2s;font-family:'Inter',sans-serif;width:100%;position:relative}
 .theme-card:active{transform:scale(.97)}
-.theme-card.active-theme{border-color:var(--eq);background:rgba(0,200,255,0.06)}
+.theme-card.active-theme{border-color:var(--eq) !important;box-shadow:0 0 0 1px var(--eq)}
+/* Each card shows its own theme preview */
+.theme-card-dark{background:#0f0f0f;color:#e0e0e0}
+.theme-card-dark .tc-label{color:#e0e0e0}
+.theme-card-dark .tc-sub{color:#5c5c5c}
+.theme-card-light{background:#ffffff;color:#1a202c;border:2px solid #e2e8f0 !important}
+.theme-card-light .tc-label{color:#1a202c;font-family:Georgia,serif}
+.theme-card-light .tc-sub{color:#718096}
+.theme-card-anime{background:#160024;color:#fce4ff}
+.theme-card-anime .tc-label{color:#ff64dc}
+.theme-card-anime .tc-sub{color:#9b6aaa}
+.theme-card-scifi{background:#001520;color:#9ffff0}
+.theme-card-scifi .tc-label{color:#00ffe0;font-family:"Courier New",monospace}
+.theme-card-scifi .tc-sub{color:#3a8070}
+.tc-icon{font-size:1.4rem;margin-bottom:.4rem;display:block}
+.tc-label{font-size:.82rem;font-weight:600;display:block;margin-bottom:.15rem}
+.tc-sub{font-size:.7rem;display:block}
 .voice-pill{background:var(--bg2);border:1px solid var(--line2);border-radius:20px;padding:.35rem .9rem;font-size:.8rem;font-weight:500;color:var(--muted);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
 .voice-pill.active-pill{background:var(--eq);color:#000;border-color:var(--eq);font-weight:600}
 .toggle-switch{width:44px;height:24px;background:var(--dim);border-radius:12px;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
@@ -651,25 +667,25 @@ body.scifi-mode::before {
       <div style="margin-bottom:1.75rem">
         <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.75rem">Theme</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <button onclick="setTheme('dark')" id="theme-dark" class="theme-card active-theme">
-            <div style="font-size:1.5rem;margin-bottom:.4rem">🌑</div>
-            <div style="font-size:.82rem;font-weight:600;color:var(--white)">Dark</div>
-            <div style="font-size:.72rem;color:var(--muted)">Default</div>
+          <button onclick="setTheme('dark')" id="theme-dark" class="theme-card theme-card-dark active-theme">
+            <span class="tc-icon">🌑</span>
+            <span class="tc-label">Dark</span>
+            <span class="tc-sub">Default</span>
           </button>
-          <button onclick="setTheme('light')" id="theme-light" class="theme-card">
-            <div style="font-size:1.5rem;margin-bottom:.4rem">☀️</div>
-            <div style="font-size:.82rem;font-weight:600;color:var(--white)">Light</div>
-            <div style="font-size:.72rem;color:var(--muted)">Clean & bright</div>
+          <button onclick="setTheme('light')" id="theme-light" class="theme-card theme-card-light">
+            <span class="tc-icon">☀️</span>
+            <span class="tc-label">Light</span>
+            <span class="tc-sub">Clean & bright</span>
           </button>
-          <button onclick="setTheme('anime')" id="theme-anime" class="theme-card">
-            <div style="font-size:1.5rem;margin-bottom:.4rem">🌸</div>
-            <div style="font-size:.82rem;font-weight:600;color:var(--white)">Anime</div>
-            <div style="font-size:.72rem;color:var(--muted)">Pink & dreamy</div>
+          <button onclick="setTheme('anime')" id="theme-anime" class="theme-card theme-card-anime">
+            <span class="tc-icon">🌸</span>
+            <span class="tc-label">Anime</span>
+            <span class="tc-sub">Pink & dreamy</span>
           </button>
-          <button onclick="setTheme('scifi')" id="theme-scifi" class="theme-card">
-            <div style="font-size:1.5rem;margin-bottom:.4rem">🛸</div>
-            <div style="font-size:.82rem;font-weight:600;color:var(--white)">Sci-Fi</div>
-            <div style="font-size:.72rem;color:var(--muted)">Teal & futuristic</div>
+          <button onclick="setTheme('scifi')" id="theme-scifi" class="theme-card theme-card-scifi">
+            <span class="tc-icon">🛸</span>
+            <span class="tc-label">Sci-Fi</span>
+            <span class="tc-sub">Teal & futuristic</span>
           </button>
         </div>
       </div>
@@ -1416,6 +1432,9 @@ function setTheme(t){
   document.querySelectorAll('.theme-card').forEach(c=>c.classList.remove('active-theme'));
   const card=document.getElementById('theme-'+t);
   if(card)card.classList.add('active-theme');
+  // Update home canvas color per theme
+  const eq = t==='anime'?'255,100,220':t==='scifi'?'0,255,210':t==='light'?'0,144,187':'0,200,255';
+  window._themeEq = eq;
 }
 function toggleMute(){
   isMuted=!isMuted;localStorage.setItem('eq_muted',isMuted);
