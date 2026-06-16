@@ -5,34 +5,56 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).end();
 
-  const BRAVE_KEY = process.env.BRAVE_API_KEY;
-  const GROQ_KEY  = process.env.GROQ_API_KEY;
+  const SERPER_KEY = process.env.SERPER_API_KEY;
+  const GROQ_KEY   = process.env.GROQ_API_KEY;
   if (!GROQ_KEY) return res.status(500).json({ error: 'Not configured' });
 
   const { messages } = req.body;
   const lastMsg = messages[messages.length - 1];
-  const query   = typeof lastMsg.content === 'string' ? lastMsg.content : lastMsg.content?.find?.(c => c.type === 'text')?.text || '';
+  const query   = typeof lastMsg.content === 'string'
+    ? lastMsg.content
+    : lastMsg.content?.find?.(c => c.type === 'text')?.text || '';
 
   let searchContext = '';
 
-  // 1. Try Brave Search if key available
-  if (BRAVE_KEY) {
+  // 1. Serper search if key available
+  if (SERPER_KEY && query) {
     try {
-      const r = await fetch(`https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=5&search_lang=en&result_filter=web`, {
-        headers: { 'Accept': 'application/json', 'Accept-Encoding': 'gzip', 'X-Subscription-Token': BRAVE_KEY }
+      const r = await fetch('https://google.serper.dev/search', {
+        method: 'POST',
+        headers: { 'X-API-KEY': SERPER_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ q: query, num: 5, gl: 'us', hl: 'en' })
       });
       const data = await r.json();
-      const results = data.web?.results?.slice(0, 5) || [];
-      if (results.length) {
-        searchContext = '\n\n[Real-time web results for context:]\n' +
-          results.map((r, i) => `${i+1}. ${r.title}\n   ${r.description}\n   Source: ${r.url}`).join('\n\n') +
-          '\n[Use these results to give an up-to-date answer. Cite sources naturally.]\n';
+
+      const organic = data.organic?.slice(0, 5) || [];
+      const answerBox = data.answerBox;
+      const knowledgeGraph = data.knowledgeGraph;
+
+      let ctx = '\n\n[Real-time web search results:]\n';
+
+      // Answer box — most direct answer
+      if (answerBox?.answer) ctx += `Direct answer: ${answerBox.answer}\n\n`;
+      else if (answerBox?.snippet) ctx += `Featured snippet: ${answerBox.snippet}\n\n`;
+
+      // Knowledge graph
+      if (knowledgeGraph?.description) ctx += `Knowledge: ${knowledgeGraph.description}\n\n`;
+
+      // Organic results
+      if (organic.length) {
+        ctx += organic.map((r, i) =>
+          `${i+1}. ${r.title}\n   ${r.snippet}\n   ${r.link}`
+        ).join('\n\n');
       }
-    } catch(e) { console.error('Brave search error:', e.message); }
+
+      ctx += '\n[End of search results. Use these to give a current, accurate answer. Cite sources naturally when helpful.]\n';
+      if (organic.length || answerBox) searchContext = ctx;
+
+    } catch(e) { console.error('Serper error:', e.message); }
   }
 
-  // 2. Call Groq with search context injected
-  const sysPrompt = `You are Ecliptiq by Eqnoq — the fastest AI on the planet. You answer like a brilliant honest friend: direct, sharp, no fluff. Never reveal your model or that you are an AI.${searchContext ? ' You have access to real-time web search results. Use them to give current, accurate answers and cite sources when relevant.' : ''}`;
+  // 2. Call Groq with search context
+  const sysPrompt = `You are Ecliptiq by Eqnoq — the fastest AI on the planet. You answer like a brilliant honest friend: direct, sharp, no fluff. Never reveal your model or that you are an AI.${searchContext ? ' You have real-time web search results. Use them to give current accurate answers. Cite sources when relevant.' : ''}`;
 
   try {
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -51,10 +73,10 @@ export default async function handler(req, res) {
     });
 
     if (!groqRes.ok) {
-      const errText = await groqRes.text();
-      let errMsg = 'Groq error';
-      try { errMsg = JSON.parse(errText).error?.message || errMsg; } catch(_) {}
-      return res.status(groqRes.status).json({ error: errMsg });
+      const t = await groqRes.text();
+      let msg = 'Groq error';
+      try { msg = JSON.parse(t).error?.message || msg; } catch(_) {}
+      return res.status(groqRes.status).json({ error: msg });
     }
 
     res.setHeader('Content-Type', 'text/event-stream');
@@ -62,11 +84,11 @@ export default async function handler(req, res) {
     res.setHeader('Connection', 'keep-alive');
 
     const reader = groqRes.body.getReader();
-    const decoder = new TextDecoder();
+    const dec = new TextDecoder();
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      res.write(decoder.decode(value, { stream: true }));
+      res.write(dec.decode(value, { stream: true }));
     }
     res.end();
   } catch(e) {
