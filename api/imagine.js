@@ -5,74 +5,54 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).end();
 
-  const PIXAZO_KEY = process.env.PIXAZO_API_KEY;
-  if (!PIXAZO_KEY) {
-    return res.status(500).json({ error: 'PIXAZO_API_KEY not set. Get a free key at pixazo.ai — includes 100 free calls.' });
-  }
+  const FAL_KEY = process.env.FAL_API_KEY;
+  if (!FAL_KEY) return res.status(500).json({ error: 'FAL_API_KEY not configured. Get a free key at fal.ai — includes $10 free credit.' });
 
-  const { prompt, width = 1024, height = 1024, steps = 4 } = req.body;
+  const { prompt, width = 1024, height = 1024 } = req.body;
   if (!prompt) return res.status(400).json({ error: 'No prompt provided' });
 
-  const GENERATE_URL = 'https://gateway.pixazo.ai/flux-1-schnell/v1/flux-1-schnell-request';
-  const STATUS_BASE  = 'https://gateway.pixazo.ai/v2/requests/status/';
-
   try {
-    // Step 1: Submit generation request
-    const submit = await fetch(GENERATE_URL, {
+    // Submit to fal.ai queue
+    const submit = await fetch('https://queue.fal.run/fal-ai/flux/schnell', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache',
-        'Ocp-Apim-Subscription-Key': PIXAZO_KEY
+        'Authorization': `Key ${FAL_KEY}`,
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         prompt,
-        width,
-        height,
-        num_inference_steps: steps,
-        output_format: 'jpeg',
-        sync_mode: false
+        image_size: { width, height },
+        num_inference_steps: 4,
+        num_images: 1,
+        enable_safety_checker: true
       })
     });
 
     if (!submit.ok) {
       const err = await submit.json().catch(() => ({}));
-      return res.status(submit.status).json({
-        error: err.message || err.title || `Pixazo error: ${submit.status}`
-      });
+      return res.status(submit.status).json({ error: err.detail || err.message || 'Submit failed' });
     }
 
-    const { request_id, polling_url } = await submit.json();
-    const pollUrl = polling_url || `${STATUS_BASE}${request_id}`;
+    const { request_id } = await submit.json();
 
-    // Step 2: Poll for result (max 90s)
-    for (let i = 0; i < 45; i++) {
+    // Poll for result (max 60s)
+    for (let i = 0; i < 30; i++) {
       await new Promise(r => setTimeout(r, 2000));
-
-      const poll = await fetch(pollUrl, {
-        headers: { 'Ocp-Apim-Subscription-Key': PIXAZO_KEY }
+      const poll = await fetch(`https://queue.fal.run/fal-ai/flux/schnell/requests/${request_id}`, {
+        headers: { 'Authorization': `Key ${FAL_KEY}` }
       });
-
-      if (!poll.ok) continue;
       const status = await poll.json();
-
-      // Check completed
-      if (status.status === 'COMPLETED' || status.images || status.output) {
-        const images = status.images || status.output?.images || status.output || [];
-        const img = Array.isArray(images) ? images[0] : images;
-        const url = img?.url || img?.image_url || (typeof img === 'string' ? img : null);
+      if (status.status === 'COMPLETED' || status.images) {
+        const images = status.images || status.output?.images || [];
+        const url = images[0]?.url || images[0];
         if (url) return res.status(200).json({ url });
-        return res.status(500).json({ error: 'No image URL in response', raw: JSON.stringify(status).slice(0, 300) });
+        return res.status(500).json({ error: 'No image in response' });
       }
-
-      if (status.status === 'FAILED' || status.status === 'ERROR') {
-        return res.status(500).json({ error: status.error || status.message || 'Generation failed' });
+      if (status.status === 'FAILED') {
+        return res.status(500).json({ error: status.error || 'Generation failed' });
       }
-      // QUEUED or IN_PROGRESS — keep polling
     }
-
-    return res.status(408).json({ error: 'Timed out after 90s. Try again.' });
-
+    return res.status(408).json({ error: 'Timed out. Try again.' });
   } catch(e) {
     return res.status(500).json({ error: e.message });
   }
