@@ -212,7 +212,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:#000;color:#e0e0e0;f
 /* RESPONSIVE */
 @media(min-width:768px){
   #bottombar{display:none}
-  #desktopSb{display:flex}
+  #desktopSb{display:flex!important}
   #app{flex-direction:row}
   .page{left:220px;padding-top:calc(52px + var(--sat))}
   #topnav{left:220px}
@@ -222,6 +222,8 @@ html,body{height:100%;width:100%;overflow:hidden;background:#000;color:#e0e0e0;f
 @media(max-width:767px){
   #desktopSb{display:none!important}
   .nav-center{display:none}
+  #nav-menu-btn{display:flex!important}
+}
   #nav-menu-btn{display:flex!important}
 }
 
@@ -1170,8 +1172,8 @@ async function runAPI(typing, lastText){
             if(delta){full+=delta;aiD.innerHTML=renderMd(full);document.getElementById('chat-msgs').scrollTop=9999;}}catch(_){}
         }
       }
-      // Auto-speak Ecliptiq response
-      if(full) speakText(full);
+      // Auto-speak disabled on mobile (requires user gesture)
+      // Users can tap 🔊 on any message to hear it
     } else {
       // Celestiq — Gemini
       const res=await fetch('/api/gemini',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:history})});
@@ -1441,6 +1443,23 @@ function clearHistory(){
   localStorage.removeItem('eq_sessions');
   renderRecent();newChat();showPage('chat');haptic('tap');
 }
+
+
+// ── MOBILE AUDIO UNLOCK ──────────────────────────
+let audioUnlocked = false;
+function unlockAudio() {
+  if(audioUnlocked) return;
+  // Create and play a silent audio to unlock mobile audio
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const buf = ctx.createBuffer(1,1,22050);
+  const src2 = ctx.createBufferSource();
+  src2.buffer = buf;
+  src2.connect(ctx.destination);
+  src2.start(0);
+  audioUnlocked = true;
+}
+document.addEventListener('touchstart', unlockAudio, { once: true });
+document.addEventListener('click', unlockAudio, { once: true });
 
 // ── PARTICLE CANVAS ──────────────────────────────
 (function(){
